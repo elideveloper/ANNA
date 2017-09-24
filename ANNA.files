@@ -1,0 +1,9 @@
+activation_functions.cpp
+activation_functions.h
+ANN.cpp
+ANN.h
+Layer.cpp
+Layer.h
+main.cpp
+Neuron.cpp
+Neuron.h
