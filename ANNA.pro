@@ -13,4 +13,5 @@ HEADERS += \
     activation_functions.h \
     ANN.h \
     Layer.h \
-    Neuron.h
+    Neuron.h \
+    enums.h

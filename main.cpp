@@ -22,30 +22,45 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 
 /*
  * Add GA learning
- * Automatic select of derivative for activation function
- *
+ * #Automatic select of derivative for activation function
+ * #High level setting of learning method
+ * Dump and import neurons weights
+ * M.b. return structure with error and number of iterations info.
  * */
 
 int main() {
 	std::srand(std::time(0));
+    const double learningSpeed = 0.1;
 	const int numInp = 9;
 	const int numNeur = 3;
 	const int numOutput = numInp;
-	double inputData[9] = { 0.5, 0.5, 0.5, 
+    double inputData[numInp] = { 0.5, 0.5, 0.5,
 							0.5, 0.5, 0.5, 
 							0.5, 0.5, 0.5 };
 	//double rightOut[numOutput] = inputData;
 
-    ANNA::ANN myAnn(numInp, numNeur, numOutput, ANNA::logisticFunction);
+    ANNA::ANN myAnn(numInp, numNeur, numOutput, ANNA::BP, ANNA::LOGISTIC_FUNCTION);
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial:\n";
 	printArr(output, numOutput);
 
-	for (int i = 0; i < 10000; i++) {
-        myAnn.backPropagate(randomlyDeviatedArray(inputData, numInp), inputData, 0.2, ANNA::logisticFunctionDerivative);
-		output = myAnn.computeOutput(inputData);
-	}
+    // prepare training dataset
+    int trainingSetSize = 100;
+    double** trainInp = new double*[trainingSetSize];
+    double** trainOut = new double*[trainingSetSize];
+    for (int i = 0; i < trainingSetSize; i++) {
+        trainInp[i] = randomlyDeviatedArray(inputData, numInp);
+        trainOut[i] = new double[numInp];
+        for (int j = 0; j < numInp; j++) {
+            trainOut[i][j] = inputData[j];
+        }
+    }
 
+    // train
+    double err = myAnn.train(trainingSetSize, trainInp, trainOut, learningSpeed, 0.001, 10000);
+    std::cout << "Error avg: " << err << std::endl;
+
+    // test
 	double* inpRand = randomlyDeviatedArray(inputData, numInp);
 	std::cout << "Random input:\n";
 	printArr(inpRand, numOutput);
