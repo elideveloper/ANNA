@@ -1,4 +1,6 @@
 #pragma once
+#ifndef NEURON_H
+#define NEURON_H
 
 #include "activation_functions.h"
 
@@ -20,3 +22,5 @@ namespace ANNA {
         void setWeight(int weightNo, double newWeight);
     };
 }
+
+#endif

@@ -20,6 +20,12 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 }
 
 
+/*
+ * Add GA learning
+ * Automatic select of derivative for activation function
+ *
+ * */
+
 int main() {
 	std::srand(std::time(0));
 	const int numInp = 9;

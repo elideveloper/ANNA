@@ -1,4 +1,6 @@
 #pragma once
+#ifndef LAYER_H
+#define LAYER_H
 
 #include <iostream>
 
@@ -19,3 +21,5 @@ namespace ANNA {
         void correctNeuronWeight(int neuronNo, int weightNo, double* input, double error, double d, ActivationFunc derivative);
     };
 }
+
+#endif

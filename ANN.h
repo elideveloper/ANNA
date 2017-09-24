@@ -1,4 +1,6 @@
 #pragma once
+#ifndef ANN_H
+#define ANN_H
 
 #include "Layer.h"
 
@@ -16,6 +18,8 @@ namespace ANNA {
         ANN(int numInput, int numHiddenNeurons, int numOutput, ActivationFunc activationFunc);
         double* computeOutput(double* input);
         double* getOutput() const;
-        void backPropagate(double* input, double* rightOutput, double d, ActivationFunc funcDerivative);	// d - шаг обучения
+        void backPropagate(double* input, double* rightOutput, double d, ActivationFunc funcDerivative);	// d - learning speed
     };
 }
+
+#endif
