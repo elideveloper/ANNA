@@ -41,14 +41,14 @@ namespace ANNA {
 		delete[] weights;
 	}
 
-	// корректируем входные веса для скрытого слоя
+    // hidden layer weights correcting
 	for (int i = 0; i < numHidden; i++) {
 		for (int j = 0; j < numInput; j++) {
 			this->hiddenLayer.correctNeuronWeight(i, j, input, hiddenErrors[i], d, funcDerivative);
 		}
 	}
 
-	// корректируем веса выходного слоя
+    // output layer weights correcting
 	for (int i = 0; i < numOutput; i++) {
 		for (int j = 0; j < numHidden; j++) {
 			this->outputLayer.correctNeuronWeight(i, j, this->hiddenOutput, outErrors[i], d, funcDerivative);
