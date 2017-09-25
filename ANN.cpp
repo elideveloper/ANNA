@@ -2,7 +2,6 @@
 
 #include <limits>
 
-
 namespace ANNA {
 
     ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons)
@@ -93,7 +92,7 @@ namespace ANNA {
         return fabs(err);
     }
 
-    double ANN::train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations)
+	TrainingResult ANN::train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations)
     {
         double avgErr = std::numeric_limits<double>::max();
         int m = 0;
@@ -120,7 +119,12 @@ namespace ANNA {
 			}
 		}
 
-        std::cout << "Number of iterations: " << m << std::endl;
-        return avgErr;
+        return TrainingResult(m, avgErr);
     }
+
+	TrainingResult::TrainingResult(int numIter, double avgErr)
+	{
+		this->numIterations = numIter;
+		this->avgError = avgErr;
+	}
 }

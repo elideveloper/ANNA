@@ -8,6 +8,13 @@
 
 namespace ANNA {
 
+	struct TrainingResult {
+		int numIterations;
+		double avgError;
+
+		TrainingResult(int numIter, double avgErr);
+	};
+
     class ANN {
         Layer hiddenLayer;      // numInput is equal to numNeurons in the hidden layer
         Layer outputLayer;      // numOutput is equal to numNeurons in the output layer
@@ -22,7 +29,7 @@ namespace ANNA {
         double* computeOutput(double* input);
         double* getOutput() const;
         double backPropagate(double* input, double* rightOutput, double d);	// d - learning speed
-        double train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations);
+		TrainingResult train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations);
     };
 }
 
