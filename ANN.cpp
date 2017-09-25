@@ -72,6 +72,7 @@ namespace ANNA {
                 this->hiddenLayer.correctNeuronWeight(i, j, input, hiddenErrors[i], d, this->activFuncDerivative);
             }
         }
+		delete[] hiddenErrors;
 
         // output layer weights correcting
         for (int i = 0; i < numOutput; i++) {
@@ -79,6 +80,8 @@ namespace ANNA {
                 this->outputLayer.correctNeuronWeight(i, j, this->hiddenOutput, outErrors[i], d, this->activFuncDerivative);
             }
         }
+		delete[] outErrors;
+
         return fabs(err);
     }
 
