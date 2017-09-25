@@ -12,7 +12,8 @@ namespace ANNA {
 
     enum ActivationFunction {
         UNDEFINED_ACTIVATION_FUNCTION = 0,
-        LOGISTIC_FUNCTION   // (1 / (1 + exp(-x)))
+        LOGISTIC_FUNCTION,   // (1 / (1 + exp(-x)))
+		TANH_FUNCTION
     };
 }
 

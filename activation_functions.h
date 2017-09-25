@@ -9,9 +9,10 @@ namespace ANNA {
 
     typedef double(*ActivationFunc)(double inpSum);
 
-    double logisticFunction(double inpSum);
-
-    double logisticFunctionDerivative(double inpSum);
+    double logisticFunction(double x);
+    double logisticFunctionDerivative(double x);
+	double tanhFunction(double x);
+	double tanhFunctionDerivative(double x);
 }
 
 #endif

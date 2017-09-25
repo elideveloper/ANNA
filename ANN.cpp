@@ -15,6 +15,11 @@ namespace ANNA {
                 this->activFuncDerivative = logisticFunctionDerivative;
             }
                 break;
+			case TANH_FUNCTION: {
+				this->activFunc = tanhFunction;
+				this->activFuncDerivative = tanhFunctionDerivative;
+			}
+									break;
             default: {
                 // error
             }

@@ -3,11 +3,19 @@
 
 namespace ANNA {
 
-    double logisticFunction(double inpSum) {
-        return (1 / (1 + exp(-inpSum)));
+    double logisticFunction(double x) {
+        return (1 / (1 + exp(-x)));
     }
 
-    double logisticFunctionDerivative(double inpSum) {
-        return logisticFunction(inpSum) * (1 - logisticFunction(inpSum));
+    double logisticFunctionDerivative(double x) {
+        return logisticFunction(x) * (1 - logisticFunction(x));
     }
+
+	double tanhFunction(double x) {
+		return ((exp(x) - exp(-x)) / (exp(x) + exp(-x)));
+	}
+
+	double tanhFunctionDerivative(double x) {
+		return 1 - sqrt(tanhFunction(x));
+	}
 }
