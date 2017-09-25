@@ -8,31 +8,34 @@ namespace ANNA {
     ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons)
     {
         switch (learnMethod) {
-            case BP: {
-            switch (activFunc) {
-            case LOGISTIC_FUNCTION: {
-                this->activFunc = logisticFunction;
-                this->activFuncDerivative = logisticFunctionDerivative;
-            }
-                break;
+			case BP: {
+				this->learnMethod = BP;
+			}
+				break;
+			case GA: {
+				// GA details
+				this->learnMethod = GA;
+			}
+				break;
+			default: {
+				// error
+			}
+        }
+		switch (activFunc) {
+			case LOGISTIC_FUNCTION: {
+				this->activFunc = logisticFunction;
+				this->activFuncDerivative = logisticFunctionDerivative;
+			}
+				break;
 			case TANH_FUNCTION: {
 				this->activFunc = tanhFunction;
 				this->activFuncDerivative = tanhFunctionDerivative;
 			}
-									break;
-            default: {
-                // error
-            }
-            }
-        }
-            break;
-        case GA: {
-            // GA details
-        }
-        default: {
-            // error
-        }
-        }
+				break;
+			default: {
+				// error
+			}
+		}
     }
 
     double* ANN::computeOutput(double* input)
@@ -95,15 +98,28 @@ namespace ANNA {
         double avgErr = std::numeric_limits<double>::max();
         int m = 0;
 
-        // while avg error will not be acceptable or max iterations
-        while (m < maxIterations && avgErr > avgError) {
-            avgErr = 0.0;
-            for (int i = 0; i < trainDatasetSize; i++, m++) {
-                avgErr += this->backPropagate(trainInput[i], trainOutput[i], d);
-                this->computeOutput(trainInput[i]);                                     // refreshs output
-            }
-            avgErr /= trainDatasetSize;
-        }
+		switch (this->learnMethod) {
+			case BP: {
+				// while avg error will not be acceptable or max iterations
+				while (m < maxIterations && avgErr > avgError) {
+					avgErr = 0.0;
+					for (int i = 0; i < trainDatasetSize; i++, m++) {
+						avgErr += this->backPropagate(trainInput[i], trainOutput[i], d);
+						this->computeOutput(trainInput[i]);                                     // refreshs output
+					}
+					avgErr /= trainDatasetSize;
+				}
+			}
+				break;
+			case GA: {
+
+			}
+				break;
+			default: {
+
+			}
+		}
+
         std::cout << "Number of iterations: " << m << std::endl;
         return avgErr;
     }
