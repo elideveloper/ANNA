@@ -2,9 +2,9 @@
 #ifndef LAYER_H
 #define LAYER_H
 
-#include <iostream>
-
 #include "Neuron.h"
+
+#include <fstream>
 
 
 namespace ANNA {
@@ -19,6 +19,8 @@ namespace ANNA {
         int getNumNeurons() const;
         int getNumInputs() const;
         void correctNeuronWeight(int neuronNo, int weightNo, double* input, double error, double d, ActivationFunc derivative);
+        void exportWeights(std::ofstream& file) const;
+        void importWeights(std::ifstream& file) const;
     };
 }
 

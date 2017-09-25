@@ -8,7 +8,7 @@ namespace ANNA {
     }
 
     double logisticFunctionDerivative(double x) {
-        return logisticFunction(x) * (1 - logisticFunction(x));
+        return (logisticFunction(x) * (1 - logisticFunction(x)));
     }
 
 	double tanhFunction(double x) {
@@ -16,6 +16,6 @@ namespace ANNA {
 	}
 
 	double tanhFunctionDerivative(double x) {
-		return 1 - sqrt(tanhFunction(x));
+        return (1 - sqrt(tanhFunction(x)));
 	}
 }

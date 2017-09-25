@@ -30,7 +30,7 @@ namespace ANNA {
         return this->numInput;
     }
 
-    double * Neuron::getWeights() const
+    double* Neuron::getWeights() const
     {
         return this->weights;
     }

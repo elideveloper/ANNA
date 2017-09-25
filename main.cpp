@@ -26,21 +26,23 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
  * Dump and import neurons weights
  * #M.b. return structure with error and number of iterations info.
  * Different traning methods are implemented in private functions of ANN, then just call them in train()
+ * M.b. take random input from set while train() and check avg error after each iteration
+ * M.b. stop condition add in training loop
  * */
 
 int main() {
 	std::srand(std::time(0));
     const double learningSpeed = 0.1;
 	const int numInp = 16;
-	const int numNeur = 5;
-	const int numOutput = numInp;
+    const int numHiddenNeur = 5;
+    const int numOutput = 16;
     double inputData[numInp] = { 0.5, 0.5, 0.5, 0.5,
 								0.5, 0.5, 0.5, 0.5,
 								0.5, 0.5, 0.5, 0.5,
 								0.5, 0.5, 0.5, 0.5, };
 	//double rightOut[numOutput] = { 1 };
 
-    ANNA::ANN myAnn(numInp, numNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial input:\n";
 	printArr(inputData, numInp);
@@ -60,7 +62,7 @@ int main() {
     }
 
     // train
-    ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, learningSpeed, 0.01, trainingSetSize * 10);
+    ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, learningSpeed, 0.001, trainingSetSize * 100);
     std::cout << "Error avg: " << trainingOutput.avgError << std::endl;
 	std::cout << "Number of iterations: " << trainingOutput.numIterations << std::endl;
 
@@ -71,8 +73,13 @@ int main() {
 	double* outputRand = myAnn.computeOutput(inpRand);
 	std::cout << "Output:\n";
 	printArr(outputRand, numOutput);
+    myAnn.exportNeuronsWeights();               // export neurons' weights of myAnn
 
-	system("pause");
+    ANNA::ANN myAnn2(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);  // create a new ANN of the same structure
+    myAnn2.importNeuronsWeights();              // import neurons' weights of myAnn2
+    double* outputRand2 = myAnn.computeOutput(inpRand);
+    std::cout << "Output:\n";
+    printArr(outputRand2, numOutput);
 
 	return 0;
 }

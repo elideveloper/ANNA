@@ -1,6 +1,7 @@
 #include "ANN.h"
 
 #include <limits>
+#include <fstream>
 
 
 namespace ANNA {
@@ -121,6 +122,26 @@ namespace ANNA {
 		}
 
         return TrainingResult(m, avgErr);
+    }
+
+    void ANN::exportNeuronsWeights() const
+    {
+        std::ofstream outFile("hidden_layer.txt");
+        this->hiddenLayer.exportWeights(outFile);
+        outFile.close();
+        outFile.open("output_layer.txt");
+        this->outputLayer.exportWeights(outFile);
+        outFile.close();
+    }
+
+    void ANN::importNeuronsWeights() const
+    {
+        std::ifstream inFile("hidden_layer.txt");
+        this->hiddenLayer.importWeights(inFile);
+        inFile.close();
+        inFile.open("output_layer.txt");
+        this->outputLayer.importWeights(inFile);
+        inFile.close();
     }
 
 	TrainingResult::TrainingResult(int numIter, double avgErr)

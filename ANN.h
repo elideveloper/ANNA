@@ -30,6 +30,8 @@ namespace ANNA {
         double* getOutput() const;
         double backPropagate(double* input, double* correctOutput, double d);	// d - learning speed
 		TrainingResult train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations);
+        void exportNeuronsWeights() const;
+        void importNeuronsWeights() const;
     };
 }
 
