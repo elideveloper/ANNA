@@ -1,5 +1,6 @@
 #include "Neuron.h"
-
+#include <iostream>
+#include <ctime>
 
 namespace ANNA {
 
@@ -9,10 +10,11 @@ namespace ANNA {
 
     Neuron::Neuron(int numInput)
     {
+		std::srand(std::time(0));
         this->numInput = numInput;
         this->weights = new double[numInput];
         for (int i = 0; i < numInput; i++) {
-            this->weights[i] = 0.5;
+			this->weights[i] = (rand() % 11) / 100.0;		// randow values [0; 0.1]
         }
     }
 
