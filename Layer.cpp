@@ -1,7 +1,5 @@
 #include "Layer.h"
 
-#include <iostream>
-
 
 namespace ANNA {
 
