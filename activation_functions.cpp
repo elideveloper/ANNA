@@ -16,6 +16,6 @@ namespace ANNA {
 	}
 
 	double tanhFunctionDerivative(double x) {
-        return (1 - sqrt(tanhFunction(x)));
+        return (1 - tanhFunction(x) * tanhFunction(x));
 	}
 }

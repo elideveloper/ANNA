@@ -16,7 +16,7 @@ namespace ANNA {
         this->numInput = numInput;
         this->weights = new double[numInput];
         for (int i = 0; i < numInput; i++) {
-			this->weights[i] = (rand() % 11) / 100.0;		// randow values [0; 0.1]
+			this->weights[i] = (rand() % 101 - 50) / 100.0;		// randow values
         }
     }
 
