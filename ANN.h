@@ -23,7 +23,6 @@ namespace ANNA {
 		LearningMethod learnMethod;
         double* output;
         double* hiddenOutput;
-
     public:
         ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::ActivationFunction activFunc = ANNA::TANH_FUNCTION);
         double* computeOutput(double* input);

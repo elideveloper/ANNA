@@ -4,6 +4,7 @@
 #include "ANN.h"
 #include "activation_functions.h"
 
+
 void printArr(double* arr, int numElem) {
 	for (int i = 0; i < numElem; i++) {
 		std::cout << arr[i] << " ";
@@ -20,6 +21,7 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 	return newArr;
 }
 
+
 /*
  * Add GA learning
  * #Automatic select of derivative for activation function
@@ -30,6 +32,7 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
  * M.b. take random input from set while train() and check avg error after each iteration
  * M.b. stop condition add in training loop
  * */
+
 
 int main() {
 	const int numInp = 16;

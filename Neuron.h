@@ -11,7 +11,6 @@ namespace ANNA {
         double* weights;
         int numInput;
     public:
-
         Neuron();
         Neuron(int numInput);
         double computeInputSum(double* input);
