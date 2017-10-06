@@ -45,7 +45,7 @@ int main() {
                                 0.5, 0.5, 0.5, 0.5,
                                 0.5, 0.5, 0.5, 0.5 };
 
-    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::LOGISTIC_FUNCTION);
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial input:\n";
 	printArr(inputData, numInp);
@@ -64,7 +64,7 @@ int main() {
         }
     }
 
-    const double learningSpeed = 0.01;
+    const double learningSpeed = 0.1;
     const double acceptableError = 0.01;
 
 	clock_t tStart = clock();
@@ -84,7 +84,6 @@ int main() {
     myAnn.exportNeuronsWeights();                                                       // export neurons' weights of myAnn
 
 
-
     /*
     ANNA::ANN myAnn2(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);  // create a new ANN of the same structure
     myAnn2.importNeuronsWeights();                                                      // import neurons' weights of myAnn2
@@ -94,7 +93,7 @@ int main() {
 	*/
 
 	printf("Time taken: %.4fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
-    //system("pause");
 
+    //system("pause");
 	return 0;
 }

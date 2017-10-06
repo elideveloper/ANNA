@@ -12,7 +12,7 @@ namespace ANNA {
     {
     }
 
-    ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons)
+    ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr)
     {
         switch (learnMethod) {
             case BP: {
@@ -82,9 +82,10 @@ namespace ANNA {
 
     double* ANN::computeOutput(double* input)
     {
+        delete[] this->output;
+        delete[] this->hiddenOutput;
         this->hiddenOutput = this->hiddenLayer.computeOutput(input, this->activFunc);
         this->output = this->outputLayer.computeOutput(this->hiddenOutput, this->activFunc);
-        delete[] this->hiddenOutput;
         return this->output;
     }
 
