@@ -23,7 +23,7 @@ namespace ANNA {
 		LearningMethod learnMethod;
         double* output;
         double* hiddenOutput;
-        void backPropagate(double* input, double* correctOutput, double d);	// d - learning speed
+        double backPropagate(double* input, double* correctOutput, double d);                       // d - learning speed
         struct Individual {
             int numInput;
             int numHidden;
@@ -48,11 +48,7 @@ namespace ANNA {
         void init(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::ActivationFunction activFunc = ANNA::TANH_FUNCTION);
         double* computeOutput(double* input);
         double* getOutput() const;
-<<<<<<< HEAD
         double getAvgError(double* correctOutput) const;
-=======
-        double backPropagate(double* input, double* correctOutput, double d);																							// d - learning speed
->>>>>>> 3949e9ee07c2977e67e342d7d46bdcddc904902e
 		TrainingResult train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations);
         void exportNeuronsWeights() const;
         void importNeuronsWeights() const;

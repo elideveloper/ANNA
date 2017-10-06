@@ -3,15 +3,11 @@
 
 namespace ANNA {
 
-<<<<<<< HEAD
     Layer::Layer()
     {
     }
 
-    Layer::Layer(int numNeurons, int numInput)
-=======
     Layer::Layer(int numNeurons, int numInput) : numNeurons(numNeurons)
->>>>>>> 3949e9ee07c2977e67e342d7d46bdcddc904902e
     {
 		// how to protect from numNeurons = 0
         this->neurons = new Neuron[numNeurons];
