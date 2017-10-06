@@ -11,8 +11,10 @@ namespace ANNA {
 
     double logisticFunction(double x);
     double logisticFunctionDerivative(double x);
+	double logisticDerivReceivingLogisticVal(double y);
 	double tanhFunction(double x);
 	double tanhFunctionDerivative(double x);
+	double tanhDerivReceivingTanhVal(double y);
 }
 
 #endif

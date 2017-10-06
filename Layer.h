@@ -12,14 +12,15 @@ namespace ANNA {
     class Layer {
         int numNeurons;
         Neuron* neurons;
+		void correctNeuronWeights(int neuronNo, int numWeights, double* input, double error, double d, ActivationFunc derivative);
     public:
         Layer();
         Layer(int numInput, int numNeurons);
         double* computeOutput(double* input, ActivationFunc activFunc);
-        double* getWeightsForNeuron(int neuronIndex) const;
         int getNumNeurons() const;
         int getNumInputs() const;
-        void correctNeuronWeight(int neuronNo, int weightNo, double* input, double error, double d, ActivationFunc derivative);
+		void correctWeights(double* input, double* errors, double d, ActivationFunc derivative);
+		double* computeLayerErrors(double* nextLayerErrors, const Layer& nextLayer);
         void exportWeights(std::ofstream& file) const;
         void importWeights(std::ifstream& file) const;
         void importWeights(double** weights) const;

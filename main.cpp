@@ -39,13 +39,21 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 int main() {
 	const int numInp = 16;
     const int numHiddenNeur = 5;
+<<<<<<< HEAD
     const int numOutput = 2;
+=======
+    const int numOutput = numInp;
+>>>>>>> 3949e9ee07c2977e67e342d7d46bdcddc904902e
     double inputData[numInp] = { 0.5, 0.5, 0.5, 0.5,
         0.5, 0.5, 0.5, 0.5,
 		0.5, 0.5, 0.5, 0.5,
 		0.5, 0.5, 0.5, 0.5 };
 
+<<<<<<< HEAD
     ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::GA, ANNA::TANH_FUNCTION);
+=======
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::LOGISTIC_FUNCTION);
+>>>>>>> 3949e9ee07c2977e67e342d7d46bdcddc904902e
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial input:\n";
 	printArr(inputData, numInp);
@@ -66,6 +74,8 @@ int main() {
 
 	const double learningSpeed = 0.01;
     const double acceptableError = 0.01;
+
+	clock_t tStart = clock();
 
     // train
     ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, learningSpeed, acceptableError, trainingSetSize * 100);
@@ -90,5 +100,11 @@ int main() {
     std::cout << "Output:\n";
     printArr(outputRand2, numOutput);
 	*/
+<<<<<<< HEAD
+=======
+
+	printf("Time taken: %.4fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
+	system("pause");
+>>>>>>> 3949e9ee07c2977e67e342d7d46bdcddc904902e
 	return 0;
 }
