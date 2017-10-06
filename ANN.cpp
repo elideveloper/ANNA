@@ -41,8 +41,8 @@ namespace ANNA {
 
     double* ANN::computeOutput(double* input)
     {
-        this->hiddenOutput = hiddenLayer.computeOutput(input, this->activFunc);
-        this->output = outputLayer.computeOutput(this->hiddenOutput, this->activFunc);
+        this->hiddenOutput = this->hiddenLayer.computeOutput(input, this->activFunc);
+        this->output = this->outputLayer.computeOutput(this->hiddenOutput, this->activFunc);
         return this->output;
     }
 
@@ -62,7 +62,6 @@ namespace ANNA {
             outErrors[i] = correctOutput[i] - this->output[i];
             err += fabs(outErrors[i]);
         }
-        err /= numOutput;																						// avg output error
 
 		// compute hidden layer errors
 		double* hiddenErrors = this->hiddenLayer.computeLayerErrors(outErrors, this->outputLayer);
@@ -75,7 +74,7 @@ namespace ANNA {
 		this->outputLayer.correctWeights(this->hiddenOutput, outErrors, d, this->activFuncDerivative);
 		delete[] outErrors;
 
-        return err;
+        return fabs(err/numOutput);
     }
 
 	TrainingResult ANN::train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations)

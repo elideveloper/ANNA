@@ -3,9 +3,9 @@
 
 namespace ANNA {
 
-    Layer::Layer(int numNeurons, int numInput)
+    Layer::Layer(int numNeurons, int numInput) : numNeurons(numNeurons)
     {
-        this->numNeurons = numNeurons;
+		// how to protect from numNeurons = 0
         this->neurons = new Neuron[numNeurons];
         for (int i = 0; i < numNeurons; i++) {
             this->neurons[i] = Neuron(numInput);
@@ -41,10 +41,9 @@ namespace ANNA {
 
 	double* Layer::computeLayerErrors(double* nextLayerErrors, const Layer& nextLayer)
 	{
-		double* errors = new double[this->numNeurons];
+		double* errors = new double[this->numNeurons]();
 		int numNext = nextLayer.getNumNeurons();
 		for (int i = 0; i < this->numNeurons; i++) {
-			errors[i] = 0.0;
 			for (int j = 0; j < numNext; j++) {
 				errors[i] += nextLayerErrors[j] * nextLayer.neurons[j].getWeight(i);
 			}

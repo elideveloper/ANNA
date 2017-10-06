@@ -10,10 +10,10 @@ namespace ANNA {
     {
     }
 
-    Neuron::Neuron(int numInput)
+    Neuron::Neuron(int numInput) : numInput(numInput)
     {
 		std::srand(std::time(0));
-        this->numInput = numInput;
+		// how to protect from numInput = 0
         this->weights = new double[numInput];
         for (int i = 0; i < numInput; i++) {
 			this->weights[i] = (rand() % 101 - 50) / 100.0;		// randow values
