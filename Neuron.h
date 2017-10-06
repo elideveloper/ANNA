@@ -17,7 +17,7 @@ namespace ANNA {
         double computeInputSum(double* input);
         double computeOutput(double* input, ActivationFunc activFunc);
         int getNumInput() const;
-		double getOutput() const;
+        double getOutput() const;
         double* getWeights() const;
         double getWeight(int weightIndex) const;
         void setWeight(int weightNo, double newWeight);

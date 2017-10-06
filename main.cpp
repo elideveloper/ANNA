@@ -45,7 +45,7 @@ int main() {
                                 0.5, 0.5, 0.5, 0.5,
                                 0.5, 0.5, 0.5, 0.5 };
 
-    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::LOGISTIC_FUNCTION);
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial input:\n";
 	printArr(inputData, numInp);
@@ -64,7 +64,7 @@ int main() {
         }
     }
 
-	const double learningSpeed = 0.01;
+    const double learningSpeed = 0.01;
     const double acceptableError = 0.01;
 
 	clock_t tStart = clock();
@@ -81,13 +81,13 @@ int main() {
 	double* outputRand = myAnn.computeOutput(inpRand);
 	std::cout << "Output:\n";
 	printArr(outputRand, numOutput);
-    myAnn.exportNeuronsWeights();               // export neurons' weights of myAnn
+    myAnn.exportNeuronsWeights();                                                       // export neurons' weights of myAnn
 
 
 
     /*
     ANNA::ANN myAnn2(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);  // create a new ANN of the same structure
-    myAnn2.importNeuronsWeights();              // import neurons' weights of myAnn2
+    myAnn2.importNeuronsWeights();                                                      // import neurons' weights of myAnn2
     double* outputRand2 = myAnn.computeOutput(inpRand);
     std::cout << "Output:\n";
     printArr(outputRand2, numOutput);

@@ -46,8 +46,9 @@ namespace ANNA {
     void Layer::correctNeuronWeights(int neuronNo, int numWeights, double* input, double error, double d, ActivationFunc derivative)
     {
         double* oldWeights = this->neurons[neuronNo].getWeights();
+        double constantFactor = d * error * derivative(this->neurons[neuronNo].getOutput());
 		for (int i = 0; i < numWeights; i++) {
-			this->neurons[neuronNo].setWeight(i, oldWeights[i] + d * error * derivative(this->neurons[neuronNo].getOutput()) * input[i]);
+            this->neurons[neuronNo].setWeight(i, oldWeights[i] + constantFactor * input[i]);
 		}
     }
 

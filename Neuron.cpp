@@ -31,7 +31,7 @@ namespace ANNA {
         return this->numInput;
     }
 
-	double Neuron::getOutput() const
+    double Neuron::getOutput() const
 	{
 		return this->output;
 	}

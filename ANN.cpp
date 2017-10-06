@@ -84,6 +84,7 @@ namespace ANNA {
     {
         this->hiddenOutput = this->hiddenLayer.computeOutput(input, this->activFunc);
         this->output = this->outputLayer.computeOutput(this->hiddenOutput, this->activFunc);
+        delete[] this->hiddenOutput;
         return this->output;
     }
 
@@ -119,9 +120,11 @@ namespace ANNA {
 
         // hidden layer weights correcting
         this->hiddenLayer.correctWeights(input, hiddenErrors, d, this->activFuncDerivative);
+        delete[] hiddenErrors;
 
         // output layer weights correcting
         this->outputLayer.correctWeights(this->hiddenOutput, outErrors, d, this->activFuncDerivative);
+        delete[] outErrors;
 
         return (err / numOutput);
     }
