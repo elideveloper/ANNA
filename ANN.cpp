@@ -25,12 +25,12 @@ namespace ANNA {
 		switch (activFunc) {
 			case LOGISTIC_FUNCTION: {
 				this->activFunc = logisticFunction;
-				this->activFuncDerivative = logisticFunctionDerivative;
+				this->activFuncDerivative = logisticDerivReceivingLogisticVal;
 			}
 				break;
 			case TANH_FUNCTION: {
 				this->activFunc = tanhFunction;
-				this->activFuncDerivative = tanhFunctionDerivative;
+				this->activFuncDerivative = tanhDerivReceivingTanhVal;
 			}
 				break;
 			default: {
@@ -55,43 +55,27 @@ namespace ANNA {
     {
         double err = 0.0;
         int numOutput = this->outputLayer.getNumNeurons();
-        int numHidden = this->hiddenLayer.getNumNeurons();
-        int numInput = this->hiddenLayer.getNumInputs();
 
+		// compute output layer errors
         double* outErrors = new double[numOutput];
         for (int i = 0; i < numOutput; i++) {
             outErrors[i] = correctOutput[i] - this->output[i];
-            err += outErrors[i];
+            err += fabs(outErrors[i]);
         }
-        err /= numOutput;                                           // avg output error
+        err /= numOutput;																						// avg output error
 
-        double* hiddenErrors = new double[numHidden];
-        for (int i = 0; i < numHidden; i++) {
-            hiddenErrors[i] = 0.0;
-            double* weights = this->outputLayer.getWeightsForNeuron(i);
-            for (int j = 0; j < numOutput; j++) {
-                hiddenErrors[i] += outErrors[j] * weights[j];
-            }
-            delete[] weights;
-        }
+		// compute hidden layer errors
+		double* hiddenErrors = this->hiddenLayer.computeLayerErrors(outErrors, this->outputLayer);
 
         // hidden layer weights correcting
-        for (int i = 0; i < numHidden; i++) {
-            for (int j = 0; j < numInput; j++) {
-                this->hiddenLayer.correctNeuronWeight(i, j, input, hiddenErrors[i], d, this->activFuncDerivative);
-            }
-        }
+		this->hiddenLayer.correctWeights(input, hiddenErrors, d, this->activFuncDerivative);
 		delete[] hiddenErrors;
 
         // output layer weights correcting
-        for (int i = 0; i < numOutput; i++) {
-            for (int j = 0; j < numHidden; j++) {
-                this->outputLayer.correctNeuronWeight(i, j, this->hiddenOutput, outErrors[i], d, this->activFuncDerivative);
-            }
-        }
+		this->outputLayer.correctWeights(this->hiddenOutput, outErrors, d, this->activFuncDerivative);
 		delete[] outErrors;
 
-        return fabs(err);
+        return err;
     }
 
 	TrainingResult ANN::train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations)

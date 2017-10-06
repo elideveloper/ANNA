@@ -21,15 +21,6 @@ namespace ANNA {
         return neuronsOutput;
     }
 
-    double* Layer::getWeightsForNeuron(int neuronIndex) const
-    {
-        double* weights = new double[this->numNeurons];
-        for (int i = 0; i < this->numNeurons; i++) {
-            weights[i] = this->neurons[i].getWeight(neuronIndex);
-        }
-        return weights;
-    }
-
     int Layer::getNumNeurons() const
     {
         return this->numNeurons;
@@ -40,11 +31,33 @@ namespace ANNA {
         return neurons[this->numNeurons - 1].getNumInput();
     }
 
-    void Layer::correctNeuronWeight(int neuronNo, int weightNo, double* input, double error, double d, ActivationFunc derivative)
+	void Layer::correctWeights(double* input, double* errors, double d, ActivationFunc derivative)
+	{
+		int numWeights = this->getNumInputs();
+		for (int i = 0; i < this->numNeurons; i++) {
+			this->correctNeuronWeights(i, numWeights, input, errors[i], d, derivative);
+		}
+	}
+
+	double* Layer::computeLayerErrors(double* nextLayerErrors, const Layer& nextLayer)
+	{
+		double* errors = new double[this->numNeurons];
+		int numNext = nextLayer.getNumNeurons();
+		for (int i = 0; i < this->numNeurons; i++) {
+			errors[i] = 0.0;
+			for (int j = 0; j < numNext; j++) {
+				errors[i] += nextLayerErrors[j] * nextLayer.neurons[j].getWeight(i);
+			}
+		}
+		return errors;
+	}
+
+    void Layer::correctNeuronWeights(int neuronNo, int numWeights, double* input, double error, double d, ActivationFunc derivative)
     {
-        double oldWeight = this->neurons[neuronNo].getWeight(weightNo);
-        double corrWeight = oldWeight + d * error * derivative(this->neurons[neuronNo].computeInputSum(input)) * input[weightNo];
-        this->neurons[neuronNo].setWeight(weightNo, corrWeight);
+        double* oldWeights = this->neurons[neuronNo].getWeights();
+		for (int i = 0; i < this->getNumInputs(); i++) {
+			this->neurons[neuronNo].setWeight(i, oldWeights[i] + d * error * derivative(this->neurons[neuronNo].getOutput()) * input[i]);
+		}
     }
 
     void Layer::exportWeights(std::ofstream& file) const

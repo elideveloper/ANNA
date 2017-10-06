@@ -22,13 +22,19 @@ namespace ANNA {
 
     double Neuron::computeOutput(double* input, ActivationFunc activFunc)
     {
-        return activFunc(this->computeInputSum(input));
+		this->output = activFunc(this->computeInputSum(input));
+        return this->output;
     }
 
     int Neuron::getNumInput() const
     {
         return this->numInput;
     }
+
+	int Neuron::getOutput() const
+	{
+		return this->output;
+	}
 
     double* Neuron::getWeights() const
     {

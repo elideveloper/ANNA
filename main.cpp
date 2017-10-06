@@ -37,7 +37,7 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 int main() {
 	const int numInp = 16;
     const int numHiddenNeur = 5;
-    const int numOutput = 1;
+    const int numOutput = numInp;
     double inputData[numInp] = { 0.5, 0.5, 0.5, 0.5,
 		0.5, 0.5, 0.5, 0.5,
 		0.5, 0.5, 0.5, 0.5,
@@ -66,6 +66,8 @@ int main() {
 	const double learningSpeed = 0.01;
 	const double acceptableError = 0.01;
 
+	clock_t tStart = clock();
+
     // train
     ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, learningSpeed, acceptableError, trainingSetSize * 100);
     std::cout << "Error avg: " << trainingOutput.avgError << std::endl;
@@ -86,6 +88,8 @@ int main() {
     std::cout << "Output:\n";
     printArr(outputRand2, numOutput);
 	*/
+
+	printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	system("pause");
 	return 0;
 }
