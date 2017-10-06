@@ -3,6 +3,10 @@
 
 namespace ANNA {
 
+    Layer::Layer()
+    {
+    }
+
     Layer::Layer(int numNeurons, int numInput)
     {
         this->numNeurons = numNeurons;
@@ -64,6 +68,15 @@ namespace ANNA {
             for (int j = 0; j < this->getNumInputs(); j++) {
                 file >> w;
                 this->neurons[i].setWeight(j, w);
+            }
+        }
+    }
+
+    void Layer::importWeights(double** weights) const
+    {
+        for (int i = 0; i < this->numNeurons; i++) {
+            for (int j = 0; j < this->getNumInputs(); j++) {
+                this->neurons[i].setWeight(j, weights[i][j]);
             }
         }
     }

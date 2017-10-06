@@ -23,7 +23,9 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 
 
 /*
- * Add GA learning
+ * #Add GA learning
+ * Add mutation
+ * Problem with 1 neuron in GA
  * #Automatic select of derivative for activation function
  * #High level setting of learning method
  * #Dump and import neurons weights
@@ -37,14 +39,13 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 int main() {
 	const int numInp = 16;
     const int numHiddenNeur = 5;
-    const int numOutput = 1;
+    const int numOutput = 2;
     double inputData[numInp] = { 0.5, 0.5, 0.5, 0.5,
-		0.5, 0.5, 0.5, 0.5,
+        0.5, 0.5, 0.5, 0.5,
 		0.5, 0.5, 0.5, 0.5,
 		0.5, 0.5, 0.5, 0.5 };
-	//double rightOut[numOutput] = { 1 };
 
-    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::GA, ANNA::TANH_FUNCTION);
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial input:\n";
 	printArr(inputData, numInp);
@@ -59,12 +60,12 @@ int main() {
         trainInp[i] = randomlyDeviatedArray(inputData, numInp);
         trainOut[i] = new double[numOutput];
         for (int j = 0; j < numOutput; j++) {
-            trainOut[i][j] = 1.0;
+            trainOut[i][j] = 0.5;
         }
     }
 
 	const double learningSpeed = 0.01;
-	const double acceptableError = 0.01;
+    const double acceptableError = 0.01;
 
     // train
     ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, learningSpeed, acceptableError, trainingSetSize * 100);
@@ -79,13 +80,15 @@ int main() {
 	std::cout << "Output:\n";
 	printArr(outputRand, numOutput);
     myAnn.exportNeuronsWeights();               // export neurons' weights of myAnn
-	/*
+
+
+
+    /*
     ANNA::ANN myAnn2(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);  // create a new ANN of the same structure
     myAnn2.importNeuronsWeights();              // import neurons' weights of myAnn2
     double* outputRand2 = myAnn.computeOutput(inpRand);
     std::cout << "Output:\n";
     printArr(outputRand2, numOutput);
 	*/
-	system("pause");
 	return 0;
 }
