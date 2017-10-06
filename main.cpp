@@ -37,7 +37,7 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 
 
 int main() {
-	const int numInp = 16;
+    const int numInp = 16;
     const int numHiddenNeur = 5;
     const int numOutput = numInp;
     double inputData[numInp] = { 0.5, 0.5, 0.5, 0.5,
@@ -45,7 +45,7 @@ int main() {
                                 0.5, 0.5, 0.5, 0.5,
                                 0.5, 0.5, 0.5, 0.5 };
 
-    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::GA, ANNA::TANH_FUNCTION);
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial input:\n";
 	printArr(inputData, numInp);
@@ -53,7 +53,7 @@ int main() {
 	printArr(output, numOutput);
 
     // prepare training dataset
-    int trainingSetSize = 100;
+    int trainingSetSize = 10;
     double** trainInp = new double*[trainingSetSize];
     double** trainOut = new double*[trainingSetSize];
     for (int i = 0; i < trainingSetSize; i++) {
@@ -66,11 +66,12 @@ int main() {
 
     const double learningSpeed = 0.1;
     const double acceptableError = 0.01;
+    unsigned int repetitionFactor = 1000;
 
 	clock_t tStart = clock();
 
     // train
-    ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, learningSpeed, acceptableError, trainingSetSize * 100);
+    ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, learningSpeed, acceptableError, trainingSetSize * repetitionFactor);
     std::cout << "Error avg: " << trainingOutput.avgError << std::endl;
 	std::cout << "Number of iterations: " << trainingOutput.numIterations << std::endl;
 

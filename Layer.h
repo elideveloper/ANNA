@@ -12,7 +12,7 @@ namespace ANNA {
     class Layer {
         int numNeurons;
         Neuron* neurons;
-		void correctNeuronWeights(int neuronNo, int numWeights, double* input, double error, double d, ActivationFunc derivative);
+        void correctNeuronWeights(int neuronNo, int numWeights, double* input, double error, double d, ActivationFunc derivative);
     public:
         Layer();
         Layer(int numInput, int numNeurons);

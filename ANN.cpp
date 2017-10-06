@@ -8,9 +8,16 @@
 
 namespace ANNA {
 
-    ANN::ANN()
+    ANN::ANN() : output(nullptr), hiddenOutput(nullptr)
     {
     }
+
+    ANN::~ANN()
+    {
+        delete[] this->output;
+        delete[] this->hiddenOutput;
+    }
+
 
     ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr)
     {
@@ -47,6 +54,8 @@ namespace ANNA {
 
     void ANN::init(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc)
     {
+        this->output = nullptr;
+        this->hiddenOutput = nullptr;
         this->hiddenLayer = Layer(numHiddenNeurons, numInput);
         this->outputLayer = Layer(numOutput, numHiddenNeurons);
         switch (learnMethod) {
@@ -160,7 +169,7 @@ namespace ANNA {
                 while (m < maxIterations && avgErr > avgError) {
                     generation = this->makeGeneticTransformation(generation, numIndividuals, trainDatasetSize, trainInput, trainOutput);
                     m++;
-                    this->importNeuronsWeights(&generation[0]);
+                    this->importNeuronsWeights(generation[0]);
                     avgErr = 0.0;
                     for (int i = 0; i < trainDatasetSize; i++) {
                         this->computeOutput(trainInput[i]);                                     // refreshs output
@@ -198,10 +207,10 @@ namespace ANNA {
         inFile.close();
     }
 
-    void ANN::importNeuronsWeights(Individual* ind) const
+    void ANN::importNeuronsWeights(const Individual& ind) const
     {
-        this->hiddenLayer.importWeights(ind->hiddenNeurons);
-        this->outputLayer.importWeights(ind->outputNeurons);
+        this->hiddenLayer.importWeights(ind.hiddenNeurons);
+        this->outputLayer.importWeights(ind.outputNeurons);
     }
 
     TrainingResult::TrainingResult(int numIter, double avgErr)
@@ -264,13 +273,13 @@ namespace ANNA {
         Individual* bestInds = new Individual[numBest];
         std::priority_queue<double> errors;
         double* errorsArr = new double[numIndividuals];
-        ANN* anns = new ANN[numIndividuals];
         int numInput = this->hiddenLayer.getNumInputs();
         int numHidden = this->hiddenLayer.getNumNeurons();
         int numOutput = this->outputLayer.getNumNeurons();
+        ANN* anns = new ANN[numIndividuals]();
         for (int i = 0; i < numIndividuals; i++) {
             anns[i].init(numInput, numHidden, numOutput);
-            anns[i].importNeuronsWeights(&generation[i]);
+            anns[i].importNeuronsWeights(generation[i]);
             double avgErr = 0.0;
             for (int j = 0; j < trainDatasetSize; j++) {
                 anns[i].computeOutput(input[j]);

@@ -3,7 +3,7 @@
 
 namespace ANNA {
 
-    Layer::Layer()
+    Layer::Layer() : neurons(nullptr)
     {
     }
 

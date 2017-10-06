@@ -6,7 +6,7 @@
 
 namespace ANNA {
 
-    Neuron::Neuron()
+    Neuron::Neuron() : weights(nullptr)
     {
     }
 
