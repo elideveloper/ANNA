@@ -39,6 +39,14 @@ namespace ANNA {
 		}
 	}
 
+    void Layer::correctNeuronWeights(int neuronNo, int numWeights, double* input, double error, double d, ActivationFunc derivative)
+    {
+        double* oldWeights = this->neurons[neuronNo].getWeights();
+		for (int i = 0; i < numWeights; i++) {
+			this->neurons[neuronNo].setWeight(i, oldWeights[i] + d * error * derivative(this->neurons[neuronNo].getOutput()) * input[i]);
+		}
+    }
+
 	double* Layer::computeLayerErrors(double* nextLayerErrors, const Layer& nextLayer)
 	{
 		double* errors = new double[this->numNeurons]();
@@ -50,14 +58,6 @@ namespace ANNA {
 		}
 		return errors;
 	}
-
-    void Layer::correctNeuronWeights(int neuronNo, int numWeights, double* input, double error, double d, ActivationFunc derivative)
-    {
-        double* oldWeights = this->neurons[neuronNo].getWeights();
-		for (int i = 0; i < this->getNumInputs(); i++) {
-			this->neurons[neuronNo].setWeight(i, oldWeights[i] + d * error * derivative(this->neurons[neuronNo].getOutput()) * input[i]);
-		}
-    }
 
     void Layer::exportWeights(std::ofstream& file) const
     {

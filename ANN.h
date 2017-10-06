@@ -27,7 +27,7 @@ namespace ANNA {
         ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::ActivationFunction activFunc = ANNA::TANH_FUNCTION);
         double* computeOutput(double* input);
         double* getOutput() const;
-        double backPropagate(double* input, double* correctOutput, double d);	// d - learning speed
+        double backPropagate(double* input, double* correctOutput, double d);																							// d - learning speed
 		TrainingResult train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations);
         void exportNeuronsWeights() const;
         void importNeuronsWeights() const;

@@ -44,7 +44,7 @@ int main() {
 		0.5, 0.5, 0.5, 0.5 };
 	//double rightOut[numOutput] = { 1 };
 
-    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::LOGISTIC_FUNCTION);
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial input:\n";
 	printArr(inputData, numInp);
@@ -89,7 +89,7 @@ int main() {
     printArr(outputRand2, numOutput);
 	*/
 
-	printf("Time taken: %.2fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
+	printf("Time taken: %.4fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 	system("pause");
 	return 0;
 }

@@ -74,7 +74,7 @@ namespace ANNA {
 		this->outputLayer.correctWeights(this->hiddenOutput, outErrors, d, this->activFuncDerivative);
 		delete[] outErrors;
 
-        return fabs(err/numOutput);
+        return fabs(err / numOutput);
     }
 
 	TrainingResult ANN::train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations)
