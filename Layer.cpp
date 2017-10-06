@@ -9,7 +9,7 @@ namespace ANNA {
 
     Layer::Layer(int numNeurons, int numInput) : numNeurons(numNeurons)
     {
-		// how to protect from numNeurons = 0
+        // how to protect from numNeurons = 0
         this->neurons = new Neuron[numNeurons];
         for (int i = 0; i < numNeurons; i++) {
             this->neurons[i] = Neuron(numInput);
@@ -35,34 +35,34 @@ namespace ANNA {
         return neurons[this->numNeurons - 1].getNumInput();
     }
 
-	void Layer::correctWeights(double* input, double* errors, double d, ActivationFunc derivative)
-	{
-		int numWeights = this->getNumInputs();
-		for (int i = 0; i < this->numNeurons; i++) {
-			this->correctNeuronWeights(i, numWeights, input, errors[i], d, derivative);
-		}
-	}
+    void Layer::correctWeights(double* input, double* errors, double d, ActivationFunc derivative)
+    {
+        int numWeights = this->getNumInputs();
+        for (int i = 0; i < this->numNeurons; i++) {
+            this->correctNeuronWeights(i, numWeights, input, errors[i], d, derivative);
+        }
+    }
 
     void Layer::correctNeuronWeights(int neuronNo, int numWeights, double* input, double error, double d, ActivationFunc derivative)
     {
         double* oldWeights = this->neurons[neuronNo].getWeights();
         double constantFactor = d * error * derivative(this->neurons[neuronNo].getOutput());
-		for (int i = 0; i < numWeights; i++) {
+        for (int i = 0; i < numWeights; i++) {
             this->neurons[neuronNo].setWeight(i, oldWeights[i] + constantFactor * input[i]);
-		}
+        }
     }
 
-	double* Layer::computeLayerErrors(double* nextLayerErrors, const Layer& nextLayer)
-	{
-		double* errors = new double[this->numNeurons]();
-		int numNext = nextLayer.getNumNeurons();
-		for (int i = 0; i < this->numNeurons; i++) {
-			for (int j = 0; j < numNext; j++) {
-				errors[i] += nextLayerErrors[j] * nextLayer.neurons[j].getWeight(i);
-			}
-		}
-		return errors;
-	}
+    double* Layer::computeLayerErrors(double* nextLayerErrors, const Layer& nextLayer)
+    {
+        double* errors = new double[this->numNeurons]();
+        int numNext = nextLayer.getNumNeurons();
+        for (int i = 0; i < this->numNeurons; i++) {
+            for (int j = 0; j < numNext; j++) {
+                errors[i] += nextLayerErrors[j] * nextLayer.neurons[j].getWeight(i);
+            }
+        }
+        return errors;
+    }
 
     void Layer::exportWeights(std::ofstream& file) const
     {
