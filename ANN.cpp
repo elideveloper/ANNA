@@ -3,7 +3,7 @@
 #include <limits>
 #include <fstream>
 #include <queue>
-#include <iostream>
+
 
 namespace ANNA {
 
@@ -182,6 +182,7 @@ namespace ANNA {
                 }
                 while (m < maxIterations) {
                     this->goToNextGeneration(generation, trainDatasetSize, trainInput, trainOutput);
+					// how to effectively check avg error after each iteration to use it in stop condition
                     m++;
                 }
 				avgErr = 0.0;
@@ -424,6 +425,7 @@ namespace ANNA {
 
 	GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals)
 	{
+		// check for (generationSize - numLeaveBest - numRandomIndividuals) is even
 		this->generationSize = generationSize;
 		this->numLeaveBest = numLeaveBest;
 		this->numRandomIndividuals = numRandomIndividuals;
