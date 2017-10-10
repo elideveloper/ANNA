@@ -23,27 +23,26 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 
 
 /*
- * #Add GA learning
- * Add mutation
- * Problem with 1 neuron in GA
+ * Add GA learning
  * #Automatic select of derivative for activation function
  * #High level setting of learning method
  * #Dump and import neurons weights
  * #M.b. return structure with error and number of iterations info.
- * Different traning methods are implemented in private functions of ANN, then just call them in train()
+ * Different training methods are implemented in private functions of ANN, then just call them in train()
  * M.b. take random input from set while train() and check avg error after each iteration
  * M.b. stop condition add in training loop
  * */
 
 
 int main() {
-    const int numInp = 16;
+	const int numInp = 16;
     const int numHiddenNeur = 5;
     const int numOutput = numInp;
     double inputData[numInp] = { 0.5, 0.5, 0.5, 0.5,
-                                0.5, 0.5, 0.5, 0.5,
-                                0.5, 0.5, 0.5, 0.5,
-                                0.5, 0.5, 0.5, 0.5 };
+		0.5, 0.5, 0.5, 0.5,
+		0.5, 0.5, 0.5, 0.5,
+		0.5, 0.5, 0.5, 0.5 };
+	//double rightOut[numOutput] = { 1 };
 
     ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::GA, ANNA::TANH_FUNCTION);
 	double* output = myAnn.computeOutput(inputData);
@@ -53,7 +52,7 @@ int main() {
 	printArr(output, numOutput);
 
     // prepare training dataset
-    int trainingSetSize = 10;
+    int trainingSetSize = 1000;
     double** trainInp = new double*[trainingSetSize];
     double** trainOut = new double*[trainingSetSize];
     for (int i = 0; i < trainingSetSize; i++) {
@@ -64,37 +63,38 @@ int main() {
         }
     }
 
-    const double learningSpeed = 0.1;
-    const double acceptableError = 0.01;
-    unsigned int repetitionFactor = 1000;
+	std::cout << "Initial error avg: " << myAnn.getAvgError(trainOut[0]) << std::endl;
+
+	unsigned int repetitionFactor = 1;
+	const double learningSpeed = 0.01;
+	const double acceptableError = 0.01;
 
 	clock_t tStart = clock();
 
     // train
     ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, learningSpeed, acceptableError, trainingSetSize * repetitionFactor);
-    std::cout << "Error avg: " << trainingOutput.avgError << std::endl;
-	std::cout << "Number of iterations: " << trainingOutput.numIterations << std::endl;
+	std::cout << "\nNumber of iterations: " << trainingOutput.numIterations << std::endl;
+	std::cout << "Error avg: " << trainingOutput.avgError << std::endl;
 
     // test
 	double* inpRand = randomlyDeviatedArray(inputData, numInp);
-	std::cout << "Random input:\n";
+	std::cout << "Test input:\n";
 	printArr(inpRand, numInp);
 	double* outputRand = myAnn.computeOutput(inpRand);
-	std::cout << "Output:\n";
+	std::cout << "Test output:\n";
 	printArr(outputRand, numOutput);
-    myAnn.exportNeuronsWeights();                                                       // export neurons' weights of myAnn
+    
+	/*
+	myAnn.exportNeuronsWeights();               // export neurons' weights of myAnn
 
-
-    /*
     ANNA::ANN myAnn2(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);  // create a new ANN of the same structure
-    myAnn2.importNeuronsWeights();                                                      // import neurons' weights of myAnn2
+    myAnn2.importNeuronsWeights();              // import neurons' weights of myAnn2
     double* outputRand2 = myAnn.computeOutput(inpRand);
     std::cout << "Output:\n";
     printArr(outputRand2, numOutput);
 	*/
 
 	printf("Time taken: %.4fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
-
-    //system("pause");
+	system("pause");
 	return 0;
 }

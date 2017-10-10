@@ -3,7 +3,6 @@
 #include <limits>
 #include <fstream>
 #include <queue>
-#include <iostream>
 
 
 namespace ANNA {
@@ -52,12 +51,27 @@ namespace ANNA {
         }
     }
 
+	ANN::ANN(const ANN& ann)
+	{
+		this->hiddenLayer = ann.hiddenLayer;
+		this->outputLayer = ann.outputLayer;
+		this->activFunc = ann.activFunc;
+		this->activFuncDerivative = ann.activFuncDerivative;
+		this->learnMethod = ann.learnMethod;
+		for (int i = 0; i < this->outputLayer.getNumNeurons(); i++) {
+			this->output[i] = ann.output[i];
+		}
+		for (int i = 0; i < this->hiddenLayer.getNumNeurons(); i++) {
+			this->hiddenOutput[i] = ann.hiddenOutput[i];
+		}
+	}
+
     void ANN::init(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc)
     {
         this->output = nullptr;
         this->hiddenOutput = nullptr;
-        this->hiddenLayer = Layer(numHiddenNeurons, numInput);
-        this->outputLayer = Layer(numOutput, numHiddenNeurons);
+        this->hiddenLayer.init(numInput, numHiddenNeurons);
+        this->outputLayer.init(numHiddenNeurons, numOutput);
         switch (learnMethod) {
             case BP: {
                 this->learnMethod = BP;
@@ -115,6 +129,8 @@ namespace ANNA {
 
     double ANN::backPropagate(double* input, double* correctOutput, double d)
     {
+		this->computeOutput(input);																	// refreshs output
+
         int numOutput = this->outputLayer.getNumNeurons();
         double err = 0.0;
 
@@ -151,7 +167,6 @@ namespace ANNA {
                     avgErr = 0.0;
                     for (int i = 0; i < trainDatasetSize; i++, m++) {
                         avgErr += this->backPropagate(trainInput[i], trainOutput[i], d);
-                        this->computeOutput(trainInput[i]);                                     // refreshs output
                     }
                     avgErr /= trainDatasetSize;
                 }
@@ -162,21 +177,21 @@ namespace ANNA {
                 int numInput = this->hiddenLayer.getNumInputs();
                 int numHidden = this->hiddenLayer.getNumNeurons();
                 int numOutput = this->outputLayer.getNumNeurons();
-                Individual* generation = new Individual[numIndividuals]; // generate first generation
+                Individual* generation = new Individual[numIndividuals];								// generate first generation
                 for (int i = 0; i < numIndividuals; i++) {
                     generation[i].init(numInput, numHidden, numOutput);
                 }
-                while (m < maxIterations && avgErr > avgError) {
+                while (m < maxIterations) {
                     generation = this->makeGeneticTransformation(generation, numIndividuals, trainDatasetSize, trainInput, trainOutput);
                     m++;
                     this->importNeuronsWeights(generation[0]);
-                    avgErr = 0.0;
-                    for (int i = 0; i < trainDatasetSize; i++) {
-                        this->computeOutput(trainInput[i]);                                     // refreshs output
-                        avgErr += this->getAvgError(trainOutput[i]);
-                    }
-                    avgErr /= trainDatasetSize;
                 }
+				avgErr = 0.0;
+				for (int i = 0; i < trainDatasetSize; i++) {
+					this->computeOutput(trainInput[i]);														// refreshs output
+					avgErr += this->getAvgError(trainOutput[i]);
+				}
+				avgErr /= trainDatasetSize;
             }
                 break;
             default: {
@@ -219,49 +234,55 @@ namespace ANNA {
         this->avgError = avgErr;
     }
 
-    ANN::Children::Children(int numInput, int numHidden, int numOutput)
+    ANN::Children::Children(int numInput, int numHidden, int numOutput) : left(new Individual(numInput, numHidden, numOutput)), right(new Individual(numInput, numHidden, numOutput))
     {
-        this->left = new Individual();
-        this->right = new Individual();
-        this->left->numInput = numInput;
-        this->left->numHidden = numHidden;
-        this->left->numOutput = numOutput;
-        this->right->numInput = numInput;
-        this->right->numHidden = numHidden;
-        this->right->numOutput = numOutput;
     }
 
-    ANN::Individual::Individual()
+	ANN::Individual::Individual() : numInput(0), numHidden(0), numOutput(0), hiddenNeurons(nullptr), outputNeurons(nullptr)
+	{
+	}
+
+    ANN::Individual::Individual(int numInput, int numHidden, int numOutput) : numInput(numInput), numHidden(numHidden), numOutput(numOutput)
     {
+		this->hiddenNeurons = new Neuron[numHidden];
+		for (int i = 0; i < numHidden; i++) {
+			this->hiddenNeurons[i] = Neuron(numInput);
+		}
+		this->outputNeurons = new Neuron[numOutput];
+		for (int i = 0; i < numOutput; i++) {
+			this->outputNeurons[i] = Neuron(numHidden);
+		}
     }
 
     ANN::Individual::~Individual()
     {
-        for (int i = 0; i < this->numHidden; i++) {
-            delete[] this->hiddenNeurons[i];
-        }
         delete[] this->hiddenNeurons;
-        for (int i = 0; i < this->numOutput; i++) {
-            delete[] this->outputNeurons[i];
-        }
         delete[] this->outputNeurons;
     }
 
+	ANN::Individual::Individual(const Individual& ind) {
+		this->numInput = ind.numInput;
+		this->numHidden = ind.numHidden;
+		this->numOutput = ind.numOutput;
+		this->hiddenNeurons = new Neuron[numHidden];
+		for (int i = 0; i < numHidden; i++) {
+			this->hiddenNeurons[i].importWeights(ind.hiddenNeurons[i]);
+		}
+		this->outputNeurons = new Neuron[numOutput];
+		for (int i = 0; i < numOutput; i++) {
+			this->outputNeurons[i].importWeights(ind.outputNeurons[i]);
+		}
+	}
+
     void ANN::Individual::init(int numInput, int numHidden, int numOutput)
     {
-        this->hiddenNeurons = new double*[numHidden];
-        for (int i = 0; i<numHidden; i++) {
-            this->hiddenNeurons[i] = new double[numInput];
-            for (int j = 0; j<numInput; j++) {
-                this->hiddenNeurons[i][j] = (rand() % 101 - 50) / 100.0;
-            }
+        this->hiddenNeurons = new Neuron[numHidden]();
+        for (int i = 0; i < numHidden; i++) {
+			this->hiddenNeurons[i].init(numInput);
         }
-        this->outputNeurons = new double*[numOutput];
-        for (int i = 0; i<numOutput; i++) {
-            this->outputNeurons[i] = new double[numHidden];
-            for (int j = 0; j<numHidden; j++) {
-                this->outputNeurons[i][j] = (rand() % 101 - 50) / 100.0;
-            }
+        this->outputNeurons = new Neuron[numOutput]();
+        for (int i = 0; i < numOutput; i++) {
+            this->outputNeurons[i].init(numHidden);
         }
         this->numInput = numInput;
         this->numHidden = numHidden;
@@ -270,12 +291,13 @@ namespace ANNA {
 
     ANN::Individual* ANN::getBestIndividuals(Individual* generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput, int numBest)
     {
-        Individual* bestInds = new Individual[numBest];
+		int numInput = this->hiddenLayer.getNumInputs();
+		int numHidden = this->hiddenLayer.getNumNeurons();
+		int numOutput = this->outputLayer.getNumNeurons();
+
+        Individual* bestInds = new Individual[numBest]();
         std::priority_queue<double> errors;
         double* errorsArr = new double[numIndividuals];
-        int numInput = this->hiddenLayer.getNumInputs();
-        int numHidden = this->hiddenLayer.getNumNeurons();
-        int numOutput = this->outputLayer.getNumNeurons();
         ANN* anns = new ANN[numIndividuals]();
         for (int i = 0; i < numIndividuals; i++) {
             anns[i].init(numInput, numHidden, numOutput);
@@ -285,15 +307,15 @@ namespace ANNA {
                 anns[i].computeOutput(input[j]);
                 avgErr += anns[i].getAvgError(correctOutput[j]);
             }
-            errorsArr[i] = avgErr/trainDatasetSize;
-            errors.push(avgErr/trainDatasetSize);
+            errorsArr[i] = avgErr / trainDatasetSize;
+            errors.push(errorsArr[i]);
         }
 
         for (int i = 0; i < numIndividuals - numBest; i++) errors.pop();       // optimize
         for (int i = numBest - 1; i >= 0; i--) {
             for (int j = 0; j < numIndividuals; j++) {
                 if (abs(errors.top() - errorsArr[j]) < std::numeric_limits<double>::min()) {
-                    bestInds[i] = generation[j];
+					bestInds[i] = generation[j];
                     break;
                 }
             }
@@ -301,7 +323,6 @@ namespace ANNA {
         }
         delete[] anns;
         delete[] errorsArr;
-        // delete[] left individuals from generation
 
         return bestInds;
     }
@@ -309,45 +330,27 @@ namespace ANNA {
     ANN::Children* ANN::cross(const Individual& mom, const Individual& dad)
     {
         Children* children = new Children(mom.numInput, mom.numHidden, mom.numOutput);
-        children->left->hiddenNeurons = new double*[mom.numHidden];
-        children->right->hiddenNeurons = new double*[mom.numHidden];
-        children->left->outputNeurons = new double*[mom.numOutput];
-        children->right->outputNeurons = new double*[mom.numOutput];
 
+		// crossover hidden layer
         int r = rand() % (mom.numHidden - 1);
         for (int i = 0; i <= r; i++) {
-            children->left->hiddenNeurons[i] = new double[mom.numInput];
-            children->right->hiddenNeurons[i] = new double[mom.numInput];
-            for (int k = 0; k < mom.numInput; k++) {
-                children->left->hiddenNeurons[i][k] = mom.hiddenNeurons[i][k];
-                children->right->hiddenNeurons[i][k] = dad.hiddenNeurons[i][k];
-            }
+			children->left->hiddenNeurons[i].importWeights(mom.hiddenNeurons[i]);
+			children->right->hiddenNeurons[i].importWeights(dad.hiddenNeurons[i]);
         }
         for (int i = r + 1; i < mom.numHidden; i++) {
-            children->left->hiddenNeurons[i] = new double[mom.numInput];
-            children->right->hiddenNeurons[i] = new double[mom.numInput];
-            for (int k = 0; k<mom.numInput; k++) {
-                children->left->hiddenNeurons[i][k] = dad.hiddenNeurons[i][k];
-                children->right->hiddenNeurons[i][k] = mom.hiddenNeurons[i][k];
-            }
+			children->left->hiddenNeurons[i].importWeights(dad.hiddenNeurons[i]);
+			children->right->hiddenNeurons[i].importWeights(mom.hiddenNeurons[i]);
         }
 
+		// crossover output layer
         r = rand() % (mom.numOutput - 1);
         for (int i = 0; i <= r; i++) {
-            children->left->outputNeurons[i] = new double[mom.numHidden];
-            children->right->outputNeurons[i] = new double[mom.numHidden];
-            for (int k = 0; k < mom.numHidden; k++) {
-                children->left->outputNeurons[i][k] = mom.outputNeurons[i][k];
-                children->right->outputNeurons[i][k] = dad.outputNeurons[i][k];
-            }
+			children->left->outputNeurons[i].importWeights(mom.outputNeurons[i]);
+			children->right->outputNeurons[i].importWeights(dad.outputNeurons[i]);
         }
         for (int i = r + 1; i < mom.numOutput; i++) {
-            children->left->outputNeurons[i] = new double[mom.numHidden];
-            children->right->outputNeurons[i] = new double[mom.numHidden];
-            for (int k = 0; k < mom.numHidden; k++) {
-                children->left->outputNeurons[i][k] = dad.outputNeurons[i][k];
-                children->right->outputNeurons[i][k] = mom.outputNeurons[i][k];
-            }
+			children->left->outputNeurons[i].importWeights(dad.outputNeurons[i]);
+			children->right->outputNeurons[i].importWeights(mom.outputNeurons[i]);
         }
 
         return children;
@@ -355,7 +358,7 @@ namespace ANNA {
 
     ANN::Individual* ANN::makeGeneticTransformation(Individual* generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput)
     {
-        Individual* nextGen = new Individual[numIndividuals];
+        Individual* nextGen = new Individual[numIndividuals]();
         Individual* nextbestInds = getBestIndividuals(generation, numIndividuals, trainDatasetSize, input, correctOutput, 5);
         nextGen[0] = nextbestInds[0];
         nextGen[1] = nextbestInds[1];
@@ -373,6 +376,7 @@ namespace ANNA {
         int numOutput = this->outputLayer.getNumNeurons();
         nextGen[8].init(numInput, numHidden, numOutput);        // random individuals
         nextGen[9].init(numInput, numHidden, numOutput);
+		//delete[] generation;
         return nextGen;
     }
 }

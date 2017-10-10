@@ -20,6 +20,37 @@ namespace ANNA {
         }
     }
 
+	Neuron::Neuron(const Neuron & neuron)
+	{
+		this->numInput = neuron.getNumInput();
+		this->weights = new double[numInput];
+		this->importWeights(neuron);
+	}
+
+	Neuron& Neuron::operator=(const Neuron& neuron)
+	{
+		this->numInput = neuron.getNumInput();
+		this->weights = new double[numInput];
+		this->importWeights(neuron);
+		return *this;
+	}
+
+	Neuron::~Neuron()
+	{
+		delete[] this->weights;
+	}
+
+	void Neuron::init(int numInput)
+	{
+		std::srand(std::time(0));
+		// how to protect from numInput = 0
+		this->numInput = numInput;
+		this->weights = new double[numInput];
+		for (int i = 0; i < numInput; i++) {
+			this->weights[i] = (rand() % 101 - 50) / 100.0;		// randow values
+		}
+	}
+
     double Neuron::computeOutput(double* input, ActivationFunc activFunc)
     {
 		this->output = activFunc(this->computeInputSum(input));
@@ -50,6 +81,13 @@ namespace ANNA {
     {
         this->weights[weightNo] = newWeight;
     }
+
+	void Neuron::importWeights(const Neuron& neuron)
+	{
+		for (int i = 0; i < this->numInput; i++) {
+			this->weights[i] = neuron.getWeight(i);
+		}
+	}
 
     double Neuron::computeInputSum(double* input)
     {

@@ -12,9 +12,30 @@ namespace ANNA {
         // how to protect from numNeurons = 0
         this->neurons = new Neuron[numNeurons];
         for (int i = 0; i < numNeurons; i++) {
-            this->neurons[i] = Neuron(numInput);
+            this->neurons[i].init(numInput);
         }
     }
+
+	Layer::Layer(const Layer& layer)
+	{
+		this->numNeurons = layer.getNumNeurons();
+		this->neurons = new Neuron[this->numNeurons];
+		this->importWeights(layer.neurons);
+	}
+
+	Layer::~Layer()
+	{
+		delete[] this->neurons;
+	}
+
+	void Layer::init(int numInput, int numNeurons)
+	{
+		this->numNeurons = numNeurons;
+		this->neurons = new Neuron[numNeurons];
+		for (int i = 0; i < numNeurons; i++) {
+			this->neurons[i].init(numInput);
+		}
+	}
 
     double* Layer::computeOutput(double* input, ActivationFunc activFunc)
     {
@@ -85,12 +106,10 @@ namespace ANNA {
         }
     }
 
-    void Layer::importWeights(double** weights) const
+    void Layer::importWeights(Neuron* neurons) const
     {
         for (int i = 0; i < this->numNeurons; i++) {
-            for (int j = 0; j < this->getNumInputs(); j++) {
-                this->neurons[i].setWeight(j, weights[i][j]);
-            }
+			this->neurons[i].importWeights(neurons[i]);
         }
     }
 }

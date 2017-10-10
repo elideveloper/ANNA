@@ -28,9 +28,11 @@ namespace ANNA {
             int numInput;
             int numHidden;
             int numOutput;
-            double** hiddenNeurons;
-            double** outputNeurons;
-            Individual();
+            Neuron* hiddenNeurons;
+			Neuron* outputNeurons;
+			Individual();
+            Individual(int numInput, int numHidden, int numOutput);
+			Individual(const Individual& ind);
             void init(int numInput, int numHidden, int numOutput);
             ~Individual();
         };
@@ -45,8 +47,9 @@ namespace ANNA {
         void importNeuronsWeights(const Individual& ind) const;
     public:
         ANN();
-        ~ANN();
         ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::ActivationFunction activFunc = ANNA::TANH_FUNCTION);
+		ANN(const ANN& ann);
+		~ANN();
         void init(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::ActivationFunction activFunc = ANNA::TANH_FUNCTION);
         double* computeOutput(double* input);
         double* getOutput() const;

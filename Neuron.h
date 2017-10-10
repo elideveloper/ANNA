@@ -14,6 +14,10 @@ namespace ANNA {
     public:
         Neuron();
         Neuron(int numInput);
+		Neuron(const Neuron& neuron);
+		Neuron& operator=(const Neuron& neuron);
+		~Neuron();
+		void init(int numInput);
         double computeInputSum(double* input);
         double computeOutput(double* input, ActivationFunc activFunc);
         int getNumInput() const;
@@ -21,6 +25,7 @@ namespace ANNA {
         double* getWeights() const;
         double getWeight(int weightIndex) const;
         void setWeight(int weightNo, double newWeight);
+		void importWeights(const Neuron& neuron);
     };
 }
 

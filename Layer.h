@@ -16,6 +16,9 @@ namespace ANNA {
     public:
         Layer();
         Layer(int numInput, int numNeurons);
+		Layer(const Layer& layer);
+		~Layer();
+		void init(int numInput, int numNeurons);
         double* computeOutput(double* input, ActivationFunc activFunc);
         int getNumNeurons() const;
         int getNumInputs() const;
@@ -23,7 +26,7 @@ namespace ANNA {
 		double* computeLayerErrors(double* nextLayerErrors, const Layer& nextLayer);
         void exportWeights(std::ofstream& file) const;
         void importWeights(std::ifstream& file) const;
-        void importWeights(double** weights) const;
+        void importWeights(Neuron* neurons) const;
     };
 }
 
