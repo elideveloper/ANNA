@@ -31,6 +31,7 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
  * Different training methods are implemented in private functions of ANN, then just call them in train()
  * M.b. take random input from set while train() and check avg error after each iteration
  * M.b. stop condition add in training loop
+ * make an object of parameters for GA and use it, instead of magic numbers =)
  * */
 
 

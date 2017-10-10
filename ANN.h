@@ -34,6 +34,7 @@ namespace ANNA {
             Individual(int numInput, int numHidden, int numOutput);
 			Individual(const Individual& ind);
             void init(int numInput, int numHidden, int numOutput);
+			void refresh(int numInput, int numHidden, int numOutput);
             ~Individual();
         };
         struct Children {
@@ -41,9 +42,9 @@ namespace ANNA {
             Individual* right;
             Children(int numInput, int numHidden, int numOutput);
         };
-        Individual* getBestIndividuals(Individual* generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput, int numBest);
+		void ANN::sortIndividuals(Individual** generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput, int numBest);
         Children* cross(const Individual& mom, const Individual& dad);
-        Individual* makeGeneticTransformation(Individual* generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput);      // get generation and returns next generation
+		void ANN::goToNextGeneration(Individual** generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput);      // get generation and returns next generation
         void importNeuronsWeights(const Individual& ind) const;
     public:
         ANN();

@@ -177,21 +177,22 @@ namespace ANNA {
                 int numInput = this->hiddenLayer.getNumInputs();
                 int numHidden = this->hiddenLayer.getNumNeurons();
                 int numOutput = this->outputLayer.getNumNeurons();
-                Individual* generation = new Individual[numIndividuals];								// generate first generation
+                Individual** generation = new Individual*[numIndividuals];									// create first generation
                 for (int i = 0; i < numIndividuals; i++) {
-                    generation[i].init(numInput, numHidden, numOutput);
+                    generation[i] = new Individual(numInput, numHidden, numOutput);
                 }
                 while (m < maxIterations) {
-                    generation = this->makeGeneticTransformation(generation, numIndividuals, trainDatasetSize, trainInput, trainOutput);
+                    this->goToNextGeneration(generation, numIndividuals, trainDatasetSize, trainInput, trainOutput);
                     m++;
-                    this->importNeuronsWeights(generation[0]);
                 }
 				avgErr = 0.0;
+				this->importNeuronsWeights(*generation[0]);
 				for (int i = 0; i < trainDatasetSize; i++) {
 					this->computeOutput(trainInput[i]);														// refreshs output
 					avgErr += this->getAvgError(trainOutput[i]);
 				}
 				avgErr /= trainDatasetSize;
+				delete[] generation;
             }
                 break;
             default: {
@@ -289,19 +290,25 @@ namespace ANNA {
         this->numOutput = numOutput;
     }
 
-    ANN::Individual* ANN::getBestIndividuals(Individual* generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput, int numBest)
+	void ANN::Individual::refresh(int numInput, int numHidden, int numOutput)
+	{
+		delete[] this->hiddenNeurons;
+		delete[] this->outputNeurons;
+		this->init(numInput, numHidden, numOutput);
+	}
+
+    void ANN::sortIndividuals(Individual** generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput, int numBest)
     {
 		int numInput = this->hiddenLayer.getNumInputs();
 		int numHidden = this->hiddenLayer.getNumNeurons();
 		int numOutput = this->outputLayer.getNumNeurons();
 
-        Individual* bestInds = new Individual[numBest]();
         std::priority_queue<double> errors;
         double* errorsArr = new double[numIndividuals];
         ANN* anns = new ANN[numIndividuals]();
         for (int i = 0; i < numIndividuals; i++) {
             anns[i].init(numInput, numHidden, numOutput);
-            anns[i].importNeuronsWeights(generation[i]);
+            anns[i].importNeuronsWeights(*generation[i]);
             double avgErr = 0.0;
             for (int j = 0; j < trainDatasetSize; j++) {
                 anns[i].computeOutput(input[j]);
@@ -311,20 +318,21 @@ namespace ANNA {
             errors.push(errorsArr[i]);
         }
 
-        for (int i = 0; i < numIndividuals - numBest; i++) errors.pop();       // optimize
-        for (int i = numBest - 1; i >= 0; i--) {
+		Individual* ind = nullptr;
+        for (int i = numIndividuals - 1; i >= 0; i--) {
             for (int j = 0; j < numIndividuals; j++) {
                 if (abs(errors.top() - errorsArr[j]) < std::numeric_limits<double>::min()) {
-					bestInds[i] = generation[j];
+					ind = generation[j];
+					generation[j] = generation[i];
+					generation[i] = ind;
                     break;
                 }
             }
             errors.pop();
         }
-        delete[] anns;
-        delete[] errorsArr;
 
-        return bestInds;
+		delete[] anns;
+		delete[] errorsArr;
     }
 
     ANN::Children* ANN::cross(const Individual& mom, const Individual& dad)
@@ -356,27 +364,26 @@ namespace ANNA {
         return children;
     }
 
-    ANN::Individual* ANN::makeGeneticTransformation(Individual* generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput)
+    void ANN::goToNextGeneration(Individual** generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput)
     {
-        Individual* nextGen = new Individual[numIndividuals]();
-        Individual* nextbestInds = getBestIndividuals(generation, numIndividuals, trainDatasetSize, input, correctOutput, 5);
-        nextGen[0] = nextbestInds[0];
-        nextGen[1] = nextbestInds[1];
-        Children* ch1 = this->cross(nextbestInds[2], nextbestInds[3]);
-        Children* ch2 = this->cross(nextbestInds[4], nextbestInds[3]);
-        Children* ch3 = this->cross(nextbestInds[2], nextbestInds[4]);
-        nextGen[2] = *(ch1->left);
-        nextGen[3] = *(ch1->right);
-        nextGen[4] = *(ch2->left);
-        nextGen[5] = *(ch2->right);
-        nextGen[6] = *(ch3->left);
-        nextGen[7] = *(ch3->right);
-        int numInput = this->hiddenLayer.getNumInputs();
-        int numHidden = this->hiddenLayer.getNumNeurons();
-        int numOutput = this->outputLayer.getNumNeurons();
-        nextGen[8].init(numInput, numHidden, numOutput);        // random individuals
-        nextGen[9].init(numInput, numHidden, numOutput);
-		//delete[] generation;
-        return nextGen;
+        sortIndividuals(generation, numIndividuals, trainDatasetSize, input, correctOutput, 5);
+        Children* ch1 = this->cross(*generation[2], *generation[3]);
+        Children* ch2 = this->cross(*generation[4], *generation[3]);
+        Children* ch3 = this->cross(*generation[2], *generation[4]);
+		delete generation[2];
+		delete generation[3];
+		delete generation[4];
+		delete generation[5];
+		delete generation[6];
+		delete generation[7];
+		generation[2] = ch1->left;
+		generation[3] = ch1->right;
+		generation[4] = ch2->left;
+		generation[5] = ch2->right;
+		generation[6] = ch3->left;
+		generation[7] = ch3->right;
+		// random individuals
+		generation[8]->refresh(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
+		generation[9]->refresh(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
     }
 }
