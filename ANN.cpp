@@ -322,6 +322,18 @@ namespace ANNA {
 		this->init(numInput, numHidden, numOutput);
 	}
 
+	void ANN::Individual::tryToMutate(int mutationPercent)
+	{
+		int rNo = rand() % (this->numHidden * (100 / mutationPercent));
+		if (rNo < this->numHidden) {
+			this->hiddenNeurons[rNo].importWeights(Neuron(this->numInput));
+		}
+		rNo = rand() % (this->numOutput * (100 / mutationPercent));
+		if (rNo < this->numOutput) {
+			this->outputNeurons[rNo].importWeights(Neuron(this->numHidden));
+		}
+	}
+
     void ANN::sortIndividuals(Individual** generation, int trainDatasetSize, double** input, double** correctOutput)
     {
 		int numIndividuals = this->gaParams->generationSize;
@@ -408,6 +420,7 @@ namespace ANNA {
 		for (int i = this->gaParams->numLeaveBest; i < this->gaParams->numLeaveBest + numChildren; i++) {
 			delete generation[i];
 			generation[i] = ch[i - this->gaParams->numLeaveBest];
+			generation[i]->tryToMutate(this->gaParams->mutationPercent);
 		}
 		delete[] ch;
 
@@ -423,11 +436,12 @@ namespace ANNA {
 		this->avgError = avgErr;
 	}
 
-	GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals)
+	GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationPercent)
 	{
 		// check for (generationSize - numLeaveBest - numRandomIndividuals) is even
 		this->generationSize = generationSize;
 		this->numLeaveBest = numLeaveBest;
 		this->numRandomIndividuals = numRandomIndividuals;
+		this->mutationPercent = mutationPercent;
 	}
 }

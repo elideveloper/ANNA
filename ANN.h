@@ -18,7 +18,8 @@ namespace ANNA {
 		int generationSize;		// number of Individuals in one generation
 		int numLeaveBest;		// num of best Individuals which leave to the next generation
 		int numRandomIndividuals;
-		GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals);
+		int mutationPercent;	
+		GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationPercent);
 	};
 
     class ANN {
@@ -43,6 +44,7 @@ namespace ANNA {
 			Individual& operator=(const Individual& ind);
             void init(int numInput, int numHidden, int numOutput);
 			void refresh(int numInput, int numHidden, int numOutput);
+			void tryToMutate(int mutationPercent);
             ~Individual();
         };
         struct Children {
