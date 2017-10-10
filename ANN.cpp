@@ -7,7 +7,7 @@
 
 namespace ANNA {
 
-    ANN::ANN() : output(nullptr), hiddenOutput(nullptr), gaParams(nullptr)
+    ANN::ANN() : output(nullptr), hiddenOutput(nullptr), params(nullptr)
     {
     }
 
@@ -15,11 +15,10 @@ namespace ANNA {
     {
         delete[] this->output;
         delete[] this->hiddenOutput;
-		delete this->gaParams;
+        delete this->params;
     }
 
-
-    ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc, ANNA::GAParams* gaParams) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr), gaParams(gaParams)
+    ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunction activFunc, ANNA::LearningMethod learnMethod, ANNA::MethodParams* params) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr), params(params)
     {
         switch (learnMethod) {
             case BP: {
@@ -27,7 +26,6 @@ namespace ANNA {
             }
                 break;
             case GA: {
-                // GA details
                 this->learnMethod = GA;
             }
                 break;
@@ -59,6 +57,7 @@ namespace ANNA {
 		this->activFunc = ann.activFunc;
 		this->activFuncDerivative = ann.activFuncDerivative;
 		this->learnMethod = ann.learnMethod;
+        this->params = ann.params;
 		for (int i = 0; i < this->outputLayer.getNumNeurons(); i++) {
 			this->output[i] = ann.output[i];
 		}
@@ -67,35 +66,22 @@ namespace ANNA {
 		}
 	}
 
-    void ANN::init(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc)
+    void ANN::init(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunc activFunc, ANNA::ActivationFunc activFuncDeriv, ANNA::LearningMethod learnMethod, ANNA::MethodParams* params)
     {
         this->output = nullptr;
         this->hiddenOutput = nullptr;
+        this->params = params;
         this->hiddenLayer.init(numInput, numHiddenNeurons);
         this->outputLayer.init(numHiddenNeurons, numOutput);
+        this->activFunc = activFunc;
+        this->activFuncDerivative = activFuncDeriv;
         switch (learnMethod) {
             case BP: {
                 this->learnMethod = BP;
             }
                 break;
             case GA: {
-                // GA details
                 this->learnMethod = GA;
-            }
-                break;
-            default: {
-                // error
-            }
-        }
-        switch (activFunc) {
-            case LOGISTIC_FUNCTION: {
-                this->activFunc = logisticFunction;
-                this->activFuncDerivative = logisticDerivReceivingLogisticVal;
-            }
-                break;
-            case TANH_FUNCTION: {
-                this->activFunc = tanhFunction;
-                this->activFuncDerivative = tanhDerivReceivingTanhVal;
             }
                 break;
             default: {
@@ -128,7 +114,7 @@ namespace ANNA {
         return (err / numOutput);
     }
 
-    double ANN::backPropagate(double* input, double* correctOutput, double d)
+    double ANN::backPropagate(double* input, double* correctOutput)
     {
 		this->computeOutput(input);																	// refreshs output
 
@@ -145,18 +131,20 @@ namespace ANNA {
         // hidden layer errors
         double* hiddenErrors = this->hiddenLayer.computeLayerErrors(outErrors, this->outputLayer);
 
+        BPParams* bpParams = static_cast<BPParams*>(this->params);
+
         // hidden layer weights correcting
-        this->hiddenLayer.correctWeights(input, hiddenErrors, d, this->activFuncDerivative);
+        this->hiddenLayer.correctWeights(input, hiddenErrors, bpParams->learningSpeed, this->activFuncDerivative);
         delete[] hiddenErrors;
 
         // output layer weights correcting
-        this->outputLayer.correctWeights(this->hiddenOutput, outErrors, d, this->activFuncDerivative);
+        this->outputLayer.correctWeights(this->hiddenOutput, outErrors, bpParams->learningSpeed, this->activFuncDerivative);
         delete[] outErrors;
 
         return (err / numOutput);
     }
 
-    TrainingResult ANN::train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations)
+    TrainingResult ANN::train(int trainDatasetSize, double** trainInput, double** trainOutput, double avgError, int maxIterations)
     {
         double avgErr = std::numeric_limits<double>::max();
         int m = 0;
@@ -167,14 +155,15 @@ namespace ANNA {
                 while (m < maxIterations && avgErr > avgError) {
                     avgErr = 0.0;
                     for (int i = 0; i < trainDatasetSize; i++, m++) {
-                        avgErr += this->backPropagate(trainInput[i], trainOutput[i], d);
+                        avgErr += this->backPropagate(trainInput[i], trainOutput[i]);
                     }
                     avgErr /= trainDatasetSize;
                 }
             }
                 break;
             case GA: {
-                int numIndividuals = this->gaParams->generationSize;
+                GAParams* gaParams = static_cast<GAParams*>(this->params);
+                int numIndividuals = gaParams->generationSize;
                 Individual** generation = new Individual*[numIndividuals];									// create first generation
 				generation[0] = this->getSelfIndivid();
                 for (int i = 1; i < numIndividuals; i++) {
@@ -256,11 +245,11 @@ namespace ANNA {
     {
 		this->hiddenNeurons = new Neuron[numHidden];
 		for (int i = 0; i < numHidden; i++) {
-			this->hiddenNeurons[i] = Neuron(numInput);
+            this->hiddenNeurons[i].init(numInput);
 		}
 		this->outputNeurons = new Neuron[numOutput];
 		for (int i = 0; i < numOutput; i++) {
-			this->outputNeurons[i] = Neuron(numHidden);
+            this->outputNeurons[i].init(numHidden);
 		}
     }
 
@@ -324,6 +313,7 @@ namespace ANNA {
 
 	void ANN::Individual::tryToMutate(int mutationPercent)
 	{
+        // check for mutationPercent > 0
 		int rNo = rand() % (this->numHidden * (100 / mutationPercent));
 		if (rNo < this->numHidden) {
 			this->hiddenNeurons[rNo].importWeights(Neuron(this->numInput));
@@ -336,13 +326,14 @@ namespace ANNA {
 
     void ANN::sortIndividuals(Individual** generation, int trainDatasetSize, double** input, double** correctOutput)
     {
-		int numIndividuals = this->gaParams->generationSize;
+        GAParams* gaParams = static_cast<GAParams*>(this->params);
+        int numIndividuals = gaParams->generationSize;
 
         std::priority_queue<double> errors;
         double* errorsArr = new double[numIndividuals];
         ANN* anns = new ANN[numIndividuals]();
         for (int i = 0; i < numIndividuals; i++) {
-            anns[i].init(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
+            anns[i].init(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons(), this->activFunc);
             anns[i].importNeuronsWeights(*generation[i]);
             double avgErr = 0.0;
             for (int j = 0; j < trainDatasetSize; j++) {
@@ -403,29 +394,31 @@ namespace ANNA {
     {
         sortIndividuals(generation, trainDatasetSize, input, correctOutput);
 
+        GAParams* gaParams = static_cast<GAParams*>(this->params);
+
 		// now works only for even number of children
-		int numChildren = this->gaParams->generationSize - this->gaParams->numRandomIndividuals - this->gaParams->numLeaveBest;
+        int numChildren = gaParams->generationSize - gaParams->numRandomIndividuals - gaParams->numLeaveBest;
 		int numParents = numChildren / 2;
 
 		Individual** ch = new Individual*[numChildren]();												// two children for each parent
 		int momIndex = 0, dadIndex = 0;
 		for (int i = 0, j = 0; j < numParents; i+=2, j++) {
-			momIndex = j + this->gaParams->numLeaveBest;
-			dadIndex = (j < numParents - 1) ? momIndex + 1 : this->gaParams->numLeaveBest;
+            momIndex = j + gaParams->numLeaveBest;
+            dadIndex = (j < numParents - 1) ? momIndex + 1 : gaParams->numLeaveBest;
 			Children* children = this->cross(*generation[momIndex], *generation[dadIndex]);
 			ch[i] = children->left;
 			ch[i + 1] = children->right;
 		}
 
-		for (int i = this->gaParams->numLeaveBest; i < this->gaParams->numLeaveBest + numChildren; i++) {
+        for (int i = gaParams->numLeaveBest; i < gaParams->numLeaveBest + numChildren; i++) {
 			delete generation[i];
-			generation[i] = ch[i - this->gaParams->numLeaveBest];
-			generation[i]->tryToMutate(this->gaParams->mutationPercent);
+            generation[i] = ch[i - gaParams->numLeaveBest];
+            generation[i]->tryToMutate(gaParams->mutationPercent);
 		}
 		delete[] ch;
 
 		// random individuals
-		for (int i = this->gaParams->generationSize - this->gaParams->numRandomIndividuals; i < this->gaParams->generationSize; i++) {
+        for (int i = gaParams->generationSize - gaParams->numRandomIndividuals; i < gaParams->generationSize; i++) {
 			generation[i]->refresh(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
 		}
     }
@@ -436,6 +429,8 @@ namespace ANNA {
 		this->avgError = avgErr;
 	}
 
+    MethodParams::~MethodParams() {}
+
 	GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationPercent)
 	{
 		// check for (generationSize - numLeaveBest - numRandomIndividuals) is even
@@ -444,4 +439,9 @@ namespace ANNA {
 		this->numRandomIndividuals = numRandomIndividuals;
 		this->mutationPercent = mutationPercent;
 	}
+
+    BPParams::BPParams(double learningSpeed)
+    {
+        this->learningSpeed = learningSpeed;
+    }
 }

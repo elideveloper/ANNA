@@ -14,13 +14,22 @@ namespace ANNA {
 		TrainingResult(int numIter, double avgErr);
 	};
 
-	struct GAParams {
+    struct MethodParams {
+        virtual ~MethodParams() = 0;
+    };
+
+    struct GAParams : MethodParams {
 		int generationSize;		// number of Individuals in one generation
 		int numLeaveBest;		// num of best Individuals which leave to the next generation
 		int numRandomIndividuals;
 		int mutationPercent;	
 		GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationPercent);
 	};
+
+    struct BPParams : MethodParams {
+        double learningSpeed;
+        BPParams(double learningSpeed);
+    };
 
     class ANN {
         Layer hiddenLayer;      // numInput is equal to numNeurons in the hidden layer
@@ -30,8 +39,8 @@ namespace ANNA {
 		LearningMethod learnMethod;
         double* output;
         double* hiddenOutput;
-		GAParams* gaParams;
-        double backPropagate(double* input, double* correctOutput, double d);                       // d - learning speed
+        MethodParams* params;
+        double backPropagate(double* input, double* correctOutput);                       // d - learning speed
         struct Individual {
             int numInput;
             int numHidden;
@@ -52,21 +61,21 @@ namespace ANNA {
             Individual* right;
             Children(int numInput, int numHidden, int numOutput);
         };
-		void ANN::sortIndividuals(Individual** generation, int trainDatasetSize, double** input, double** correctOutput);
+        void sortIndividuals(Individual** generation, int trainDatasetSize, double** input, double** correctOutput);
         Children* cross(const Individual& mom, const Individual& dad);
-		void ANN::goToNextGeneration(Individual** generation, int trainDatasetSize, double** input, double** correctOutput);      // get generation and returns next generation
+        void goToNextGeneration(Individual** generation, int trainDatasetSize, double** input, double** correctOutput);      // get generation and returns next generation
         void importNeuronsWeights(const Individual& ind) const;
 		Individual* getSelfIndivid() const;
     public:
         ANN();
-        ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::ActivationFunction activFunc = ANNA::TANH_FUNCTION, ANNA::GAParams* gaParams = nullptr);
+        ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunction activFunc = ANNA::TANH_FUNCTION, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::MethodParams* params = nullptr);
 		ANN(const ANN& ann);
 		~ANN();
-        void init(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::ActivationFunction activFunc = ANNA::TANH_FUNCTION);
+        void init(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunc activFunc, ANNA::ActivationFunc activFuncDeriv = nullptr, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::MethodParams* params = nullptr);
         double* computeOutput(double* input);
         double* getOutput() const;
         double getAvgError(double* correctOutput) const;
-		TrainingResult train(int trainDatasetSize, double** trainInput, double** trainOutput, double d, double avgError, int maxIterations);
+        TrainingResult train(int trainDatasetSize, double** trainInput, double** trainOutput, double avgError, int maxIterations);
         void exportNeuronsWeights() const;
         void importNeuronsWeights() const;
     };

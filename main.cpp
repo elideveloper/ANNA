@@ -31,6 +31,7 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
  * Different training methods are implemented in private functions of ANN, then just call them in train()
  * M.b. stop condition add in training loop
  * #make an object of parameters for GA and use it, instead of magic numbers =)
+ * Add concurrency if possible
  * */
 
 
@@ -43,8 +44,11 @@ int main() {
 		0.5, 0.5, 0.5, 0.5,
 		0.5, 0.5, 0.5, 0.5 };
 	//double rightOut[numOutput] = { 1 };
+    const double learningSpeed = 0.01;
+    ANNA::BPParams* bpParams = new ANNA::BPParams(learningSpeed);
+    ANNA::GAParams* gaParams = new ANNA::GAParams(10, 2, 2, 1);
 
-    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::GA, ANNA::TANH_FUNCTION, new ANNA::GAParams(10, 1, 3, 2));
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::TANH_FUNCTION, ANNA::BP, bpParams);
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial input:\n";
 	printArr(inputData, numInp);
@@ -65,14 +69,13 @@ int main() {
 
 	std::cout << "Initial error avg: " << myAnn.getAvgError(trainOut[0]) << std::endl;
 
-	unsigned int repetitionFactor = 1;
-	const double learningSpeed = 0.01;
+    unsigned int repetitionFactor = 1;
 	const double acceptableError = 0.01;
 
 	clock_t tStart = clock();
 
     // train
-    ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, learningSpeed, acceptableError, trainingSetSize * repetitionFactor);
+    ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, acceptableError, trainingSetSize * repetitionFactor);
 	std::cout << "\nNumber of iterations: " << trainingOutput.numIterations << std::endl;
 	std::cout << "Error avg: " << trainingOutput.avgError << std::endl;
 
@@ -84,17 +87,7 @@ int main() {
 	std::cout << "Test output:\n";
 	printArr(outputRand, numOutput);
     
-	/*
-	myAnn.exportNeuronsWeights();               // export neurons' weights of myAnn
-
-    ANNA::ANN myAnn2(numInp, numHiddenNeur, numOutput, ANNA::BP, ANNA::TANH_FUNCTION);  // create a new ANN of the same structure
-    myAnn2.importNeuronsWeights();              // import neurons' weights of myAnn2
-    double* outputRand2 = myAnn.computeOutput(inpRand);
-    std::cout << "Output:\n";
-    printArr(outputRand2, numOutput);
-	*/
-
 	printf("Time taken: %.4fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
-	system("pause");
+    //system("pause");
 	return 0;
 }
