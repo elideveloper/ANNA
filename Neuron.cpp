@@ -23,14 +23,14 @@ namespace ANNA {
 	Neuron::Neuron(const Neuron & neuron)
 	{
 		this->numInput = neuron.getNumInput();
-		this->weights = new double[numInput];
+		this->weights = new double[this->numInput];
 		this->importWeights(neuron);
 	}
 
 	Neuron& Neuron::operator=(const Neuron& neuron)
 	{
 		this->numInput = neuron.getNumInput();
-		this->weights = new double[numInput];
+		this->weights = new double[this->numInput];
 		this->importWeights(neuron);
 		return *this;
 	}
@@ -72,9 +72,9 @@ namespace ANNA {
         return this->weights;
     }
 
-    double Neuron::getWeight(int weightIndex) const
+    double Neuron::getWeight(int weightNo) const
     {
-        return this->weights[weightIndex];
+        return this->weights[weightNo];
     }
 
     void Neuron::setWeight(int weightNo, double newWeight)

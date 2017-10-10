@@ -95,6 +95,11 @@ namespace ANNA {
         }
     }
 
+	Neuron Layer::getNeuron(int neuronNo) const
+	{
+		return this->neurons[neuronNo];
+	}
+
     void Layer::importWeights(std::ifstream& file) const
     {
         double w = 0.0;

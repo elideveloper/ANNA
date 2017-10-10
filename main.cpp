@@ -45,7 +45,7 @@ int main() {
 		0.5, 0.5, 0.5, 0.5 };
 	//double rightOut[numOutput] = { 1 };
 
-    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::GA, ANNA::TANH_FUNCTION);
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::GA, ANNA::TANH_FUNCTION, new ANNA::GAParams(10, 2, 2));
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial input:\n";
 	printArr(inputData, numInp);

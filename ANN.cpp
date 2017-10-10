@@ -3,11 +3,11 @@
 #include <limits>
 #include <fstream>
 #include <queue>
-
+#include <iostream>
 
 namespace ANNA {
 
-    ANN::ANN() : output(nullptr), hiddenOutput(nullptr)
+    ANN::ANN() : output(nullptr), hiddenOutput(nullptr), gaParams(nullptr)
     {
     }
 
@@ -15,10 +15,11 @@ namespace ANNA {
     {
         delete[] this->output;
         delete[] this->hiddenOutput;
+		delete this->gaParams;
     }
 
 
-    ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr)
+    ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::LearningMethod learnMethod, ANNA::ActivationFunction activFunc, ANNA::GAParams* gaParams) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr), gaParams(gaParams)
     {
         switch (learnMethod) {
             case BP: {
@@ -173,16 +174,14 @@ namespace ANNA {
             }
                 break;
             case GA: {
-                int numIndividuals = 10;
-                int numInput = this->hiddenLayer.getNumInputs();
-                int numHidden = this->hiddenLayer.getNumNeurons();
-                int numOutput = this->outputLayer.getNumNeurons();
+                int numIndividuals = this->gaParams->generationSize;
                 Individual** generation = new Individual*[numIndividuals];									// create first generation
-                for (int i = 0; i < numIndividuals; i++) {
-                    generation[i] = new Individual(numInput, numHidden, numOutput);
+				generation[0] = this->getSelfIndivid();
+                for (int i = 1; i < numIndividuals; i++) {
+                    generation[i] = new Individual(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
                 }
                 while (m < maxIterations) {
-                    this->goToNextGeneration(generation, numIndividuals, trainDatasetSize, trainInput, trainOutput);
+                    this->goToNextGeneration(generation, trainDatasetSize, trainInput, trainOutput);
                     m++;
                 }
 				avgErr = 0.0;
@@ -192,6 +191,9 @@ namespace ANNA {
 					avgErr += this->getAvgError(trainOutput[i]);
 				}
 				avgErr /= trainDatasetSize;
+				for (int i = 0; i < numIndividuals; i++) {
+					delete generation[i];
+				}
 				delete[] generation;
             }
                 break;
@@ -229,11 +231,17 @@ namespace ANNA {
         this->outputLayer.importWeights(ind.outputNeurons);
     }
 
-    TrainingResult::TrainingResult(int numIter, double avgErr)
-    {
-        this->numIterations = numIter;
-        this->avgError = avgErr;
-    }
+	ANN::Individual* ANN::getSelfIndivid() const
+	{
+		Individual* ind = new Individual(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
+		for (int i = 0; i < ind->numHidden; i++) {
+			ind->hiddenNeurons[i].importWeights(this->hiddenLayer.getNeuron(i));
+		}
+		for (int i = 0; i < ind->numOutput; i++) {
+			ind->outputNeurons[i].importWeights(this->outputLayer.getNeuron(i));
+		}
+		return ind;
+	}
 
     ANN::Children::Children(int numInput, int numHidden, int numOutput) : left(new Individual(numInput, numHidden, numOutput)), right(new Individual(numInput, numHidden, numOutput))
     {
@@ -265,14 +273,30 @@ namespace ANNA {
 		this->numInput = ind.numInput;
 		this->numHidden = ind.numHidden;
 		this->numOutput = ind.numOutput;
-		this->hiddenNeurons = new Neuron[numHidden];
-		for (int i = 0; i < numHidden; i++) {
+		this->hiddenNeurons = new Neuron[this->numHidden];
+		for (int i = 0; i < this->numHidden; i++) {
 			this->hiddenNeurons[i].importWeights(ind.hiddenNeurons[i]);
 		}
-		this->outputNeurons = new Neuron[numOutput];
-		for (int i = 0; i < numOutput; i++) {
+		this->outputNeurons = new Neuron[this->numOutput];
+		for (int i = 0; i < this->numOutput; i++) {
 			this->outputNeurons[i].importWeights(ind.outputNeurons[i]);
 		}
+	}
+
+	ANN::Individual& ANN::Individual::operator=(const Individual& ind)
+	{
+		this->numInput = ind.numInput;
+		this->numHidden = ind.numHidden;
+		this->numOutput = ind.numOutput;
+		this->hiddenNeurons = new Neuron[this->numHidden];
+		for (int i = 0; i < this->numHidden; i++) {
+			this->hiddenNeurons[i].importWeights(ind.hiddenNeurons[i]);
+		}
+		this->outputNeurons = new Neuron[this->numOutput];
+		for (int i = 0; i < this->numOutput; i++) {
+			this->outputNeurons[i].importWeights(ind.outputNeurons[i]);
+		}
+		return *this;
 	}
 
     void ANN::Individual::init(int numInput, int numHidden, int numOutput)
@@ -297,17 +321,15 @@ namespace ANNA {
 		this->init(numInput, numHidden, numOutput);
 	}
 
-    void ANN::sortIndividuals(Individual** generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput, int numBest)
+    void ANN::sortIndividuals(Individual** generation, int trainDatasetSize, double** input, double** correctOutput)
     {
-		int numInput = this->hiddenLayer.getNumInputs();
-		int numHidden = this->hiddenLayer.getNumNeurons();
-		int numOutput = this->outputLayer.getNumNeurons();
+		int numIndividuals = this->gaParams->generationSize;
 
         std::priority_queue<double> errors;
         double* errorsArr = new double[numIndividuals];
         ANN* anns = new ANN[numIndividuals]();
         for (int i = 0; i < numIndividuals; i++) {
-            anns[i].init(numInput, numHidden, numOutput);
+            anns[i].init(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
             anns[i].importNeuronsWeights(*generation[i]);
             double avgErr = 0.0;
             for (int j = 0; j < trainDatasetSize; j++) {
@@ -364,26 +386,46 @@ namespace ANNA {
         return children;
     }
 
-    void ANN::goToNextGeneration(Individual** generation, int numIndividuals, int trainDatasetSize, double** input, double** correctOutput)
+    void ANN::goToNextGeneration(Individual** generation, int trainDatasetSize, double** input, double** correctOutput)
     {
-        sortIndividuals(generation, numIndividuals, trainDatasetSize, input, correctOutput, 5);
-        Children* ch1 = this->cross(*generation[2], *generation[3]);
-        Children* ch2 = this->cross(*generation[4], *generation[3]);
-        Children* ch3 = this->cross(*generation[2], *generation[4]);
-		delete generation[2];
-		delete generation[3];
-		delete generation[4];
-		delete generation[5];
-		delete generation[6];
-		delete generation[7];
-		generation[2] = ch1->left;
-		generation[3] = ch1->right;
-		generation[4] = ch2->left;
-		generation[5] = ch2->right;
-		generation[6] = ch3->left;
-		generation[7] = ch3->right;
+        sortIndividuals(generation, trainDatasetSize, input, correctOutput);
+
+		// now works only for even number of children
+		int numChildren = this->gaParams->generationSize - this->gaParams->numRandomIndividuals - this->gaParams->numLeaveBest;
+		int numParents = numChildren / 2;
+
+		Individual** ch = new Individual*[numChildren]();												// two children for each parent
+		int momIndex = 0, dadIndex = 0;
+		for (int i = 0, j = 0; j < numParents; i+=2, j++) {
+			momIndex = j + this->gaParams->numLeaveBest;
+			dadIndex = (j < numParents - 1) ? momIndex + 1 : this->gaParams->numLeaveBest;
+			Children* children = this->cross(*generation[momIndex], *generation[dadIndex]);
+			ch[i] = children->left;
+			ch[i + 1] = children->right;
+		}
+
+		for (int i = this->gaParams->numLeaveBest; i < this->gaParams->numLeaveBest + numChildren; i++) {
+			delete generation[i];
+			generation[i] = ch[i - this->gaParams->numLeaveBest];
+		}
+		delete[] ch;
+
 		// random individuals
-		generation[8]->refresh(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
-		generation[9]->refresh(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
+		for (int i = this->gaParams->generationSize - this->gaParams->numRandomIndividuals; i < this->gaParams->generationSize; i++) {
+			generation[i]->refresh(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
+		}
     }
+
+	TrainingResult::TrainingResult(int numIter, double avgErr)
+	{
+		this->numIterations = numIter;
+		this->avgError = avgErr;
+	}
+
+	GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals)
+	{
+		this->generationSize = generationSize;
+		this->numLeaveBest = numLeaveBest;
+		this->numRandomIndividuals = numRandomIndividuals;
+	}
 }

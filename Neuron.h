@@ -23,7 +23,7 @@ namespace ANNA {
         int getNumInput() const;
         double getOutput() const;
         double* getWeights() const;
-        double getWeight(int weightIndex) const;
+        double getWeight(int weightNo) const;
         void setWeight(int weightNo, double newWeight);
 		void importWeights(const Neuron& neuron);
     };

@@ -25,6 +25,7 @@ namespace ANNA {
 		void correctWeights(double* input, double* errors, double d, ActivationFunc derivative);
 		double* computeLayerErrors(double* nextLayerErrors, const Layer& nextLayer);
         void exportWeights(std::ofstream& file) const;
+		Neuron getNeuron(int neuronNo) const;
         void importWeights(std::ifstream& file) const;
         void importWeights(Neuron* neurons) const;
     };
