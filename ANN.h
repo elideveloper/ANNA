@@ -61,7 +61,9 @@ namespace ANNA {
             Individual* right;
             Children(int numInput, int numHidden, int numOutput);
         };
-        void sortIndividuals(Individual** generation, int trainDatasetSize, double** input, double** correctOutput);
+		Individual** createRandomGeneration();
+		void destroyGeneration(Individual** generation);
+		void sortIndividuals(Individual** generation, int trainDatasetSize, double** input, double** correctOutput);
         Children* cross(const Individual& mom, const Individual& dad);
         void goToNextGeneration(Individual** generation, int trainDatasetSize, double** input, double** correctOutput);      // get generation and returns next generation
         void importNeuronsWeights(const Individual& ind) const;

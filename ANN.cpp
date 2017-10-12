@@ -162,13 +162,7 @@ namespace ANNA {
             }
                 break;
             case GA: {
-                GAParams* gaParams = static_cast<GAParams*>(this->params);
-                int numIndividuals = gaParams->generationSize;
-                Individual** generation = new Individual*[numIndividuals];									// create first generation
-				generation[0] = this->getSelfIndivid();
-                for (int i = 1; i < numIndividuals; i++) {
-                    generation[i] = new Individual(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
-                }
+				Individual** generation = this->createRandomGeneration();									// create first generation
                 while (m < maxIterations) {
                     this->goToNextGeneration(generation, trainDatasetSize, trainInput, trainOutput);
 					// how to effectively check avg error after each iteration to use it in stop condition
@@ -181,10 +175,7 @@ namespace ANNA {
 					avgErr += this->getAvgError(trainOutput[i]);
 				}
 				avgErr /= trainDatasetSize;
-				for (int i = 0; i < numIndividuals; i++) {
-					delete generation[i];
-				}
-				delete[] generation;
+				this->destroyGeneration(generation);
             }
                 break;
             default: {
@@ -324,7 +315,27 @@ namespace ANNA {
 		}
 	}
 
-    void ANN::sortIndividuals(Individual** generation, int trainDatasetSize, double** input, double** correctOutput)
+	ANN::Individual** ANN::createRandomGeneration()
+	{
+		int numIndividuals = static_cast<GAParams*>(this->params)->generationSize;
+		Individual** generation = new Individual*[numIndividuals];									// create first generation
+		generation[0] = this->getSelfIndivid();
+		for (int i = 1; i < numIndividuals; i++) {
+			generation[i] = new Individual(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
+		}
+		return generation;
+	}
+
+	void ANN::destroyGeneration(Individual ** generation)
+	{
+		int numIndividuals = static_cast<GAParams*>(this->params)->generationSize;
+		for (int i = 0; i < numIndividuals; i++) {
+			delete generation[i];
+		}
+		delete[] generation;
+	}
+
+	void ANN::sortIndividuals(Individual** generation, int trainDatasetSize, double** input, double** correctOutput)
     {
         GAParams* gaParams = static_cast<GAParams*>(this->params);
         int numIndividuals = gaParams->generationSize;
