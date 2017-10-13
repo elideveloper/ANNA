@@ -19,21 +19,23 @@ namespace ANNA {
     };
 
     struct GAParams : MethodParams {
-		int generationSize;		// number of Individuals in one generation
-		int numLeaveBest;		// num of best Individuals which leave to the next generation
+        int generationSize;                 // number of Individuals in one generation
+        int numLeaveBest;                   // num of best Individuals which leave to the next generation
 		int numRandomIndividuals;
 		int mutationPercent;	
-		GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationPercent);
+        int maxGenerations;
+        GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationPercent, int maxGenerations);
 	};
 
     struct BPParams : MethodParams {
         double learningSpeed;
-        BPParams(double learningSpeed);
+        int repetitionFactor;
+        BPParams(double learningSpeed, int repetitionFactor);
     };
 
     class ANN {
-        Layer hiddenLayer;      // numInput is equal to numNeurons in the hidden layer
-        Layer outputLayer;      // numOutput is equal to numNeurons in the output layer
+        Layer hiddenLayer;                  // numInput is equal to numNeurons in the hidden layer
+        Layer outputLayer;                  // numOutput is equal to numNeurons in the output layer
         ActivationFunc activFunc;
         ActivationFunc activFuncDerivative;
 		LearningMethod learnMethod;
@@ -77,7 +79,7 @@ namespace ANNA {
         double* computeOutput(double* input);
         double* getOutput() const;
         double getAvgError(double* correctOutput) const;
-        TrainingResult train(int trainDatasetSize, double** trainInput, double** trainOutput, double avgError, int maxIterations);
+        TrainingResult train(int trainDatasetSize, double** trainInput, double** trainOutput, int pretestDatasetSize, double** pretestInput, double** pretestOutput, double acceptableError);
         void exportNeuronsWeights() const;
         void importNeuronsWeights() const;
     };

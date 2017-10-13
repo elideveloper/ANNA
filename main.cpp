@@ -32,6 +32,8 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
  * M.b. stop condition add in training loop
  * #make an object of parameters for GA and use it, instead of magic numbers =)
  * Add concurrency if possible
+ * Exceptions, all checks of input parameters
+ * Change size types to Unsigned int
  * */
 
 
@@ -45,10 +47,17 @@ int main() {
 		0.5, 0.5, 0.5, 0.5 };
 	//double rightOut[numOutput] = { 1 };
     const double learningSpeed = 0.01;
-    ANNA::BPParams* bpParams = new ANNA::BPParams(learningSpeed);
-    ANNA::GAParams* gaParams = new ANNA::GAParams(10, 2, 2, 1);
+    unsigned int repetitionFactor = 10;
+    unsigned int maxGenerations = 1000;
+    const double acceptableError = 0.01;
+    unsigned int generationSize = 10;
+    unsigned int numLeaveBest = 1;
+    unsigned int numRandomInds = 3;
+    unsigned int mutationProbability = 1;
+    ANNA::BPParams* bpParams = new ANNA::BPParams(learningSpeed, repetitionFactor);
+    ANNA::GAParams* gaParams = new ANNA::GAParams(generationSize, numLeaveBest, numRandomInds, mutationProbability, maxGenerations);
 
-    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::TANH_FUNCTION, ANNA::BP, bpParams);
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::TANH_FUNCTION, ANNA::GA, gaParams);
 	double* output = myAnn.computeOutput(inputData);
 	std::cout << "Initial input:\n";
 	printArr(inputData, numInp);
@@ -67,15 +76,24 @@ int main() {
         }
     }
 
-	std::cout << "Initial error avg: " << myAnn.getAvgError(trainOut[0]) << std::endl;
+    // pretesting dataset
+    int pretestingSetSize = 10;
+    double** pretestInp = new double*[pretestingSetSize];
+    double** pretestOut = new double*[pretestingSetSize];
+    for (int i = 0; i < pretestingSetSize; i++) {
+        pretestInp[i] = randomlyDeviatedArray(inputData, numInp);
+        pretestOut[i] = new double[numOutput];
+        for (int j = 0; j < numOutput; j++) {
+            pretestOut[i][j] = 1.0;
+        }
+    }
 
-    unsigned int repetitionFactor = 1;
-	const double acceptableError = 0.01;
+	std::cout << "Initial error avg: " << myAnn.getAvgError(trainOut[0]) << std::endl;
 
 	clock_t tStart = clock();
 
     // train
-    ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, acceptableError, trainingSetSize * repetitionFactor);
+    ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, pretestingSetSize, pretestInp, pretestOut, acceptableError);
 	std::cout << "\nNumber of iterations: " << trainingOutput.numIterations << std::endl;
 	std::cout << "Error avg: " << trainingOutput.avgError << std::endl;
 

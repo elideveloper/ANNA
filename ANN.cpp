@@ -144,37 +144,40 @@ namespace ANNA {
         return (err / numOutput);
     }
 
-    TrainingResult ANN::train(int trainDatasetSize, double** trainInput, double** trainOutput, double avgError, int maxIterations)
+    TrainingResult ANN::train(int trainDatasetSize, double** trainInput, double** trainOutput, int pretestDatasetSize, double** pretestInput, double** pretestOutput, double acceptableError)
     {
         double avgErr = std::numeric_limits<double>::max();
         int m = 0;
 
         switch (this->learnMethod) {
             case BP: {
-                // while avg error will not be acceptable or max iterations
-                while (m < maxIterations && avgErr > avgError) {
-                    avgErr = 0.0;
+                int maxIterations = static_cast<BPParams*>(this->params)->repetitionFactor * trainDatasetSize;
+                while (m < maxIterations && avgErr > acceptableError) {
                     for (int i = 0; i < trainDatasetSize; i++, m++) {
-                        avgErr += this->backPropagate(trainInput[i], trainOutput[i]);
+                        this->backPropagate(trainInput[i], trainOutput[i]);
                     }
-                    avgErr /= trainDatasetSize;
+                    avgErr = 0.0;
+                    for (int i = 0; i < pretestDatasetSize; i++) {
+                        this->computeOutput(pretestInput[i]);
+                        avgErr += this->getAvgError(pretestOutput[i]);
+                    }
+                    avgErr /= pretestDatasetSize;
                 }
             }
                 break;
             case GA: {
 				Individual** generation = this->createRandomGeneration();									// create first generation
-                while (m < maxIterations) {
+                while (m < static_cast<GAParams*>(this->params)->maxGenerations && avgErr > acceptableError) {
                     this->goToNextGeneration(generation, trainDatasetSize, trainInput, trainOutput);
-					// how to effectively check avg error after each iteration to use it in stop condition
                     m++;
+                    this->importNeuronsWeights(*generation[0]);
+                    avgErr = 0.0;
+                    for (int i = 0; i < pretestDatasetSize; i++) {
+                        this->computeOutput(pretestInput[i]);
+                        avgErr += this->getAvgError(pretestOutput[i]);
+                    }
+                    avgErr /= pretestDatasetSize;
                 }
-				avgErr = 0.0;
-				this->importNeuronsWeights(*generation[0]);
-				for (int i = 0; i < trainDatasetSize; i++) {
-					this->computeOutput(trainInput[i]);														// refreshs output
-					avgErr += this->getAvgError(trainOutput[i]);
-				}
-				avgErr /= trainDatasetSize;
 				this->destroyGeneration(generation);
             }
                 break;
@@ -304,7 +307,9 @@ namespace ANNA {
 
 	void ANN::Individual::tryToMutate(int mutationPercent)
 	{
-        // check for mutationPercent > 0
+        if (mutationPercent <= 0) return;
+        if (mutationPercent > 100) mutationPercent = 100;
+
 		int rNo = rand() % (this->numHidden * (100 / mutationPercent));
 		if (rNo < this->numHidden) {
 			this->hiddenNeurons[rNo].importWeights(Neuron(this->numInput));
@@ -442,17 +447,15 @@ namespace ANNA {
 
     MethodParams::~MethodParams() {}
 
-	GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationPercent)
+    GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationPercent, int maxGenerations) : mutationPercent(mutationPercent), maxGenerations(maxGenerations)
 	{
 		// check for (generationSize - numLeaveBest - numRandomIndividuals) is even
 		this->generationSize = generationSize;
 		this->numLeaveBest = numLeaveBest;
 		this->numRandomIndividuals = numRandomIndividuals;
-		this->mutationPercent = mutationPercent;
 	}
 
-    BPParams::BPParams(double learningSpeed)
+    BPParams::BPParams(double learningSpeed, int repetitionFactor) : learningSpeed(learningSpeed), repetitionFactor(repetitionFactor)
     {
-        this->learningSpeed = learningSpeed;
     }
 }
