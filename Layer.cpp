@@ -85,6 +85,11 @@ namespace ANNA {
         return errors;
     }
 
+    Neuron Layer::getNeuron(int neuronNo) const
+    {
+        return this->neurons[neuronNo];
+    }
+
     void Layer::exportWeights(std::ofstream& file) const
     {
         for (int i = 0; i < this->numNeurons; i++) {
@@ -94,11 +99,6 @@ namespace ANNA {
             }
         }
     }
-
-	Neuron Layer::getNeuron(int neuronNo) const
-	{
-		return this->neurons[neuronNo];
-	}
 
     void Layer::importWeights(std::ifstream& file) const
     {

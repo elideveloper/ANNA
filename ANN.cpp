@@ -326,7 +326,7 @@ namespace ANNA {
 		Individual** generation = new Individual*[numIndividuals];									// create first generation
 		generation[0] = this->getSelfIndivid();
 		for (int i = 1; i < numIndividuals; i++) {
-			generation[i] = new Individual(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
+            generation[i] = new Individual(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
 		}
 		return generation;
 	}
@@ -445,7 +445,9 @@ namespace ANNA {
 		this->avgError = avgErr;
 	}
 
-    MethodParams::~MethodParams() {}
+    MethodParams::~MethodParams()
+    {
+    }
 
     GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationPercent, int maxGenerations) : mutationPercent(mutationPercent), maxGenerations(maxGenerations)
 	{
