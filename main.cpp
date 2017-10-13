@@ -6,19 +6,19 @@
 
 
 void printArr(double* arr, int numElem) {
-	for (int i = 0; i < numElem; i++) {
+    for (int i = 0; i < numElem; i++) {
         //std::cout << arr[i] << " ";
         printf("%.2f ", arr[i]);
-	}
-	std::cout << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 double* randomlyDeviatedArray(double* arr, int numElem) {
-	double* newArr = new double[numElem];
-	for (int i = 0; i < numElem; i++) {
-		newArr[i] = arr[i] + (rand() % 21 - 10) / 100.0;
-	}
-	return newArr;
+    double* newArr = new double[numElem];
+    for (int i = 0; i < numElem; i++) {
+        newArr[i] = arr[i] + (rand() % 21 - 10) / 100.0;
+    }
+    return newArr;
 }
 
 
@@ -34,7 +34,7 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 int main() {
     std::srand(std::time(0));
 
-	const int numInp = 16;
+    const int numInp = 16;
     const int numHiddenNeur = 5;
     const int numOutput = numInp;
     const double acceptableError = 0.01;
@@ -60,9 +60,9 @@ int main() {
     for (int i = 0; i < trainingSetSize; i++) {
         trainInp[i] = randomlyDeviatedArray(exampleInputData, numInp);
         trainOut[i] = new double[numOutput];
-        //for (int j = 0; j < numOutput; j++) {
-            trainOut[i] = trainInp[i];
-        //}
+        for (int j = 0; j < numOutput; j++) {
+            trainOut[i][j] = 1.0;
+        }
     }
 
     // pretesting dataset
@@ -72,38 +72,38 @@ int main() {
     for (int i = 0; i < pretestingSetSize; i++) {
         pretestInp[i] = randomlyDeviatedArray(exampleInputData, numInp);
         pretestOut[i] = new double[numOutput];
-        //for (int j = 0; j < numOutput; j++) {
-            pretestOut[i] = pretestInp[i];
-        //}
+        for (int j = 0; j < numOutput; j++) {
+            pretestOut[i][j] = 1.0;
+        }
     }
 
     // init ANN
-    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::TANH_FUNCTION, ANNA::BP, bpParams);
+    ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::TANH_FUNCTION, ANNA::GA, gaParams);
     double* output = myAnn.computeOutput(trainInp[0]);
     std::cout << "Initial input:\n";
     printArr(trainInp[0], numInp);
     std::cout << "Initial output:\n";
     printArr(output, numOutput);
-	std::cout << "Initial error avg: " << myAnn.getAvgError(trainOut[0]) << std::endl;
-	clock_t tStart = clock();
+    std::cout << "Initial error avg: " << myAnn.getAvgError(trainOut[0]) << std::endl;
+    clock_t tStart = clock();
 
     // train
     ANNA::TrainingResult trainingOutput = myAnn.train(trainingSetSize, trainInp, trainOut, pretestingSetSize, pretestInp, pretestOut, acceptableError);
-	std::cout << "\nNumber of iterations: " << trainingOutput.numIterations << std::endl;
-	std::cout << "Error avg: " << trainingOutput.avgError << std::endl;
+    std::cout << "\nNumber of iterations: " << trainingOutput.numIterations << std::endl;
+    std::cout << "Error avg: " << trainingOutput.avgError << std::endl;
 
     printf("Time taken: %.4fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
 
     // test
     double* inpRand = randomlyDeviatedArray(exampleInputData, numInp);
-	std::cout << "Test input:\n";
-	printArr(inpRand, numInp);
-	double* outputRand = myAnn.computeOutput(inpRand);
-	std::cout << "Test output:\n";
-	printArr(outputRand, numOutput);
+    std::cout << "Test input:\n";
+    printArr(inpRand, numInp);
+    double* outputRand = myAnn.computeOutput(inpRand);
+    std::cout << "Test output:\n";
+    printArr(outputRand, numOutput);
 
-    myAnn.exportNeuronsWeights();
-    
+    //myAnn.exportNeuronsWeights();
+
     //system("pause");
-	return 0;
+    return 0;
 }
