@@ -3,6 +3,7 @@
 #include <limits>
 #include <fstream>
 #include <queue>
+#include <ctime>
 
 
 namespace ANNA {
@@ -20,6 +21,7 @@ namespace ANNA {
 
     ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunction activFunc, ANNA::LearningMethod learnMethod, ANNA::MethodParams* params) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr), params(params)
     {
+        std::srand(std::time(0));
         switch (learnMethod) {
             case BP: {
                 this->learnMethod = BP;

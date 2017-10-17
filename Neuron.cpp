@@ -1,7 +1,6 @@
 #include "Neuron.h"
 
 #include <iostream>
-#include <ctime>
 
 
 namespace ANNA {
