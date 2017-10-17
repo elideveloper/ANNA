@@ -3,7 +3,6 @@
 #include <limits>
 #include <fstream>
 #include <queue>
-#include <ctime>
 
 
 namespace ANNA {
@@ -21,7 +20,6 @@ namespace ANNA {
 
     ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunction activFunc, ANNA::LearningMethod learnMethod, ANNA::MethodParams* params) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr), params(params)
     {
-        std::srand(std::time(0));
         switch (learnMethod) {
             case BP: {
                 this->learnMethod = BP;
@@ -170,7 +168,7 @@ namespace ANNA {
             case GA: {
 				Individual** generation = this->createRandomGeneration();									// create first generation
                 while (m < static_cast<GAParams*>(this->params)->maxGenerations && avgErr > acceptableError) {
-                    this->goToNextGeneration(generation, trainDatasetSize, trainInput, trainOutput);
+                    this->goToNextGeneration(generation, pretestDatasetSize, pretestInput, pretestOutput);
                     m++;
                     this->importNeuronsWeights(*generation[0]);
                     avgErr = 0.0;
@@ -342,7 +340,7 @@ namespace ANNA {
 		delete[] generation;
 	}
 
-	void ANN::sortIndividuals(Individual** generation, int trainDatasetSize, double** input, double** correctOutput)
+    void ANN::sortIndividuals(Individual** generation, int datasetSize, double** input, double** correctOutput)
     {
         GAParams* gaParams = static_cast<GAParams*>(this->params);
         int numIndividuals = gaParams->generationSize;
@@ -354,21 +352,25 @@ namespace ANNA {
             anns[i].init(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons(), this->activFunc);
             anns[i].importNeuronsWeights(*generation[i]);
             double avgErr = 0.0;
-            for (int j = 0; j < trainDatasetSize; j++) {
+            for (int j = 0; j < datasetSize; j++) {
                 anns[i].computeOutput(input[j]);
                 avgErr += anns[i].getAvgError(correctOutput[j]);
             }
-            errorsArr[i] = avgErr / trainDatasetSize;
+            errorsArr[i] = avgErr / datasetSize;
             errors.push(errorsArr[i]);
         }
 
 		Individual* ind = nullptr;
+        double err = 0.0;
         for (int i = numIndividuals - 1; i >= 0; i--) {
             for (int j = 0; j < numIndividuals; j++) {
                 if (abs(errors.top() - errorsArr[j]) < std::numeric_limits<double>::min()) {
 					ind = generation[j];
 					generation[j] = generation[i];
 					generation[i] = ind;
+                    err = errorsArr[j];
+                    errorsArr[j] = errorsArr[i];
+                    errorsArr[i] = err;
                     break;
                 }
             }

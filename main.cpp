@@ -1,4 +1,4 @@
-//#include <ctime>
+#include <ctime>
 
 #include "ANN.h"
 #include "activation_functions.h"
@@ -30,18 +30,18 @@ double* randomlyDeviatedArray(double* arr, int numElem) {
 
 
 int main() {
-    //std::srand(std::time(0));
+    std::srand(std::time(0));
 
     const int numInp = 16;
     const int numHiddenNeur = 5;
     const int numOutput = numInp;
     const double acceptableError = 0.001;
     const double learningSpeed = 0.2;
-    unsigned int repetitionFactor = 100;
-    unsigned int maxGenerations = 3000;
-    unsigned int generationSize = 10;
-    unsigned int numLeaveBest = 1;
-    unsigned int numRandomInds = 3;
+    unsigned int repetitionFactor = 10;
+    unsigned int maxGenerations = 10000;
+    unsigned int generationSize = 40;
+    unsigned int numLeaveBest = 4;
+    unsigned int numRandomInds = 10;
     unsigned int mutationProbability = 1;
     ANNA::BPParams* bpParams = new ANNA::BPParams(learningSpeed, repetitionFactor);
     ANNA::GAParams* gaParams = new ANNA::GAParams(generationSize, numLeaveBest, numRandomInds, mutationProbability, maxGenerations);
@@ -77,12 +77,15 @@ int main() {
 
     // init ANN
     ANNA::ANN myAnn(numInp, numHiddenNeur, numOutput, ANNA::TANH_FUNCTION, ANNA::GA, gaParams);
-    double* output = myAnn.computeOutput(trainInp[0]);
-    printf("Initial input:\n");
-    printArr(trainInp[0], numInp);
-    printf("Initial output:\n");
-    printArr(output, numOutput);
-    printf("Initial error avg: %.4f\n", myAnn.getAvgError(trainOut[0]));
+
+    // check initial error
+    double avgErr = 0.0;
+    for (int i = 0; i < pretestingSetSize; i++) {
+        myAnn.computeOutput(pretestInp[i]);
+        avgErr += myAnn.getAvgError(pretestOut[i]);
+    }
+    printf("Initial error avg: %.4f\n", avgErr / pretestingSetSize);
+
     clock_t tStart = clock();
 
     // train
