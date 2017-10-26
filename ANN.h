@@ -74,6 +74,7 @@ namespace ANNA {
         ANN();
         ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunction activFunc = ANNA::TANH_FUNCTION, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::MethodParams* params = nullptr);
 		ANN(const ANN& ann);
+		ANN& operator=(const ANN& ann);
 		~ANN();
         void init(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunc activFunc, ANNA::ActivationFunc activFuncDeriv = nullptr, ANNA::LearningMethod learnMethod = ANNA::BP, ANNA::MethodParams* params = nullptr);
         double* computeOutput(double* input);

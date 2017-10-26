@@ -27,6 +27,7 @@ namespace ANNA {
 
 	Neuron& Neuron::operator=(const Neuron& neuron)
 	{
+		delete[] this->weights;
 		this->numInput = neuron.getNumInput();
 		this->weights = new double[this->numInput];
 		this->importWeights(neuron);

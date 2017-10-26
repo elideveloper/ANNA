@@ -222,11 +222,12 @@ void testSquareVsX() {
 
 
 /*
- * Different training methods are implemented in private functions of ANN, then just call them in train()
- * M.b. stop condition add in training loop
+ * ~Different training methods are implemented in private functions of ANN, then just call them in train()
+ * ~M.b. stop condition add in training loop
  * Add concurrency if possible
  * Exceptions, all checks of input parameters
- * Change size types to Unsigned int
+ * ~Change size types to Unsigned int
+ * Check and fix all copy constructors / operator= 
  * */
 
 
@@ -235,7 +236,7 @@ int main() {
 
 	//testNoiseReduction();
 
-	testSquareVsX();
+	//testSquareVsX();
 
     //system("pause");
     return 0;

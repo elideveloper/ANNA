@@ -20,7 +20,20 @@ namespace ANNA {
 	{
 		this->numNeurons = layer.getNumNeurons();
 		this->neurons = new Neuron[this->numNeurons];
-		this->importWeights(layer.neurons);
+		for (int i = 0; i < this->numNeurons; i++) {
+			this->neurons[i] = layer.getNeuron(i);
+		}
+	}
+
+	Layer& Layer::operator=(const Layer& layer)
+	{
+		delete[] this->neurons;
+		this->numNeurons = layer.getNumNeurons();
+		this->neurons = new Neuron[this->numNeurons];
+		for (int i = 0; i < this->numNeurons; i++) {
+			this->neurons[i] = layer.getNeuron(i);
+		}
+		return *this;
 	}
 
 	Layer::~Layer()

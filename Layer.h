@@ -17,6 +17,7 @@ namespace ANNA {
         Layer();
         Layer(int numInput, int numNeurons);
 		Layer(const Layer& layer);
+		Layer& operator=(const Layer& layer);
 		~Layer();
 		void init(int numInput, int numNeurons);
         double* computeOutput(double* input, ActivationFunc activFunc);

@@ -57,13 +57,44 @@ namespace ANNA {
 		this->activFunc = ann.activFunc;
 		this->activFuncDerivative = ann.activFuncDerivative;
 		this->learnMethod = ann.learnMethod;
-        this->params = ann.params;
-		for (int i = 0; i < this->outputLayer.getNumNeurons(); i++) {
-			this->output[i] = ann.output[i];
+		this->params = ann.params;
+		if (ann.output != nullptr) {
+			this->output = new double[this->outputLayer.getNumNeurons()];
+			for (int i = 0; i < this->outputLayer.getNumNeurons(); i++) {
+				this->output[i] = ann.output[i];
+			}
 		}
-		for (int i = 0; i < this->hiddenLayer.getNumNeurons(); i++) {
-			this->hiddenOutput[i] = ann.hiddenOutput[i];
+		if (ann.output != nullptr) {
+			this->hiddenOutput = new double[this->hiddenLayer.getNumNeurons()];
+			for (int i = 0; i < this->hiddenLayer.getNumNeurons(); i++) {
+				this->hiddenOutput[i] = ann.hiddenOutput[i];
+			}
 		}
+	}
+
+	ANN & ANN::operator=(const ANN & ann)
+	{
+		delete[] this->output;
+		delete[] this->hiddenOutput;
+		this->hiddenLayer = ann.hiddenLayer;
+		this->outputLayer = ann.outputLayer;
+		this->activFunc = ann.activFunc;
+		this->activFuncDerivative = ann.activFuncDerivative;
+		this->learnMethod = ann.learnMethod;
+		this->params = ann.params;
+		if (ann.output != nullptr) {
+			this->output = new double[this->outputLayer.getNumNeurons()];
+			for (int i = 0; i < this->outputLayer.getNumNeurons(); i++) {
+				this->output[i] = ann.output[i];
+			}
+		}
+		if (ann.output != nullptr) {
+			this->hiddenOutput = new double[this->hiddenLayer.getNumNeurons()];
+			for (int i = 0; i < this->hiddenLayer.getNumNeurons(); i++) {
+				this->hiddenOutput[i] = ann.hiddenOutput[i];
+			}
+		}
+		return *this;
 	}
 
     void ANN::init(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunc activFunc, ANNA::ActivationFunc activFuncDeriv, ANNA::LearningMethod learnMethod, ANNA::MethodParams* params)
