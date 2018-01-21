@@ -18,21 +18,9 @@ namespace ANNA {
         delete this->params;
     }
 
-    ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunction activFunc, ANNA::LearningMethod learnMethod, ANNA::MethodParams* params) : hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr), params(params)
+    ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunction activFunc, ANNA::LearningMethod learnMethod, ANNA::MethodParams* params) 
+		: hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr), learnMethod(learnMethod), params(params)
     {
-        switch (learnMethod) {
-            case BP: {
-                this->learnMethod = BP;
-            }
-                break;
-            case GA: {
-                this->learnMethod = GA;
-            }
-                break;
-            default: {
-                // error
-            }
-        }
         switch (activFunc) {
             case LOGISTIC_FUNCTION: {
                 this->activFunc = logisticFunction;
@@ -57,7 +45,7 @@ namespace ANNA {
 		this->activFunc = ann.activFunc;
 		this->activFuncDerivative = ann.activFuncDerivative;
 		this->learnMethod = ann.learnMethod;
-		this->params = ann.params;
+		this->params = ann.params;					// !!! CLONE
 		if (ann.output != nullptr) {
 			this->output = new double[this->outputLayer.getNumNeurons()];
 			for (int i = 0; i < this->outputLayer.getNumNeurons(); i++) {
@@ -74,6 +62,7 @@ namespace ANNA {
 
 	ANN & ANN::operator=(const ANN & ann)
 	{
+		// delete params
 		delete[] this->output;
 		delete[] this->hiddenOutput;
 		this->hiddenLayer = ann.hiddenLayer;
@@ -81,7 +70,7 @@ namespace ANNA {
 		this->activFunc = ann.activFunc;
 		this->activFuncDerivative = ann.activFuncDerivative;
 		this->learnMethod = ann.learnMethod;
-		this->params = ann.params;
+		this->params = ann.params;								// !!! CLONE
 		if (ann.output != nullptr) {
 			this->output = new double[this->outputLayer.getNumNeurons()];
 			for (int i = 0; i < this->outputLayer.getNumNeurons(); i++) {
@@ -101,24 +90,12 @@ namespace ANNA {
     {
         this->output = nullptr;
         this->hiddenOutput = nullptr;
+		this->learnMethod = learnMethod;
         this->params = params;
         this->hiddenLayer.init(numInput, numHiddenNeurons);
         this->outputLayer.init(numHiddenNeurons, numOutput);
         this->activFunc = activFunc;
         this->activFuncDerivative = activFuncDeriv;
-        switch (learnMethod) {
-            case BP: {
-                this->learnMethod = BP;
-            }
-                break;
-            case GA: {
-                this->learnMethod = GA;
-            }
-                break;
-            default: {
-                // error
-            }
-        }
     }
 
     double* ANN::computeOutput(double* input)
@@ -316,10 +293,12 @@ namespace ANNA {
 
     void ANN::Individual::init(int numInput, int numHidden, int numOutput)
     {
+		delete[] this->hiddenNeurons;
         this->hiddenNeurons = new Neuron[numHidden]();
         for (int i = 0; i < numHidden; i++) {
 			this->hiddenNeurons[i].init(numInput);
         }
+		delete[] this->outputNeurons;
         this->outputNeurons = new Neuron[numOutput]();
         for (int i = 0; i < numOutput; i++) {
             this->outputNeurons[i].init(numHidden);
@@ -329,25 +308,18 @@ namespace ANNA {
         this->numOutput = numOutput;
     }
 
-	void ANN::Individual::refresh(int numInput, int numHidden, int numOutput)
+	void ANN::Individual::tryToMutate(int mutationProbab)
 	{
-		delete[] this->hiddenNeurons;
-		delete[] this->outputNeurons;
-		this->init(numInput, numHidden, numOutput);
-	}
+        if (mutationProbab <= 0) return;
+        if (mutationProbab > 100) mutationProbab = 100;
 
-	void ANN::Individual::tryToMutate(int mutationPercent)
-	{
-        if (mutationPercent <= 0) return;
-        if (mutationPercent > 100) mutationPercent = 100;
-
-		int rNo = rand() % (this->numHidden * (100 / mutationPercent));
+		int rNo = rand() % (this->numHidden * (100 / mutationProbab));
 		if (rNo < this->numHidden) {
-			this->hiddenNeurons[rNo].importWeights(Neuron(this->numInput));
+			this->hiddenNeurons[rNo].importWeights(Neuron(this->numInput));		// mutate neuron in the hidden layer
 		}
-		rNo = rand() % (this->numOutput * (100 / mutationPercent));
+		rNo = rand() % (this->numOutput * (100 / mutationProbab));
 		if (rNo < this->numOutput) {
-			this->outputNeurons[rNo].importWeights(Neuron(this->numHidden));
+			this->outputNeurons[rNo].importWeights(Neuron(this->numHidden));	// mutate neuron in the output layer
 		}
 	}
 
@@ -464,27 +436,26 @@ namespace ANNA {
         for (int i = gaParams->numLeaveBest; i < gaParams->numLeaveBest + numChildren; i++) {
 			delete generation[i];
             generation[i] = ch[i - gaParams->numLeaveBest];
-            generation[i]->tryToMutate(gaParams->mutationPercent);
+            generation[i]->tryToMutate(gaParams->mutationProbab);
 		}
 		delete[] ch;
 
 		// random individuals
         for (int i = gaParams->generationSize - gaParams->numRandomIndividuals; i < gaParams->generationSize; i++) {
-			generation[i]->refresh(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
+			generation[i]->init(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
 		}
     }
 
-	TrainingResult::TrainingResult(int numIter, double avgErr)
+	TrainingResult::TrainingResult(int numIter, double avgErr) : numIterations(numIter), avgError(avgErr)
 	{
-		this->numIterations = numIter;
-		this->avgError = avgErr;
 	}
 
     MethodParams::~MethodParams()
     {
     }
 
-    GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationPercent, int maxGenerations) : mutationPercent(mutationPercent), maxGenerations(maxGenerations)
+    GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationProbab, int maxGenerations) 
+		: mutationProbab(mutationProbab), maxGenerations(maxGenerations)
 	{
 		// check for (generationSize - numLeaveBest - numRandomIndividuals) is even
 		this->generationSize = generationSize;

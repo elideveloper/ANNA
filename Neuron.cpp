@@ -27,8 +27,8 @@ namespace ANNA {
 
 	Neuron& Neuron::operator=(const Neuron& neuron)
 	{
-		delete[] this->weights;
 		this->numInput = neuron.getNumInput();
+		delete[] this->weights;
 		this->weights = new double[this->numInput];
 		this->importWeights(neuron);
 		return *this;
@@ -43,6 +43,7 @@ namespace ANNA {
 	{
 		// how to protect from numInput = 0
 		this->numInput = numInput;
+		delete[] this->weights;
 		this->weights = new double[numInput];
 		for (int i = 0; i < numInput; i++) {
             this->weights[i] = (rand() % 1001 - 500) / 1000.0;		// randow values

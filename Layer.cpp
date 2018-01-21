@@ -27,8 +27,8 @@ namespace ANNA {
 
 	Layer& Layer::operator=(const Layer& layer)
 	{
-		delete[] this->neurons;
 		this->numNeurons = layer.getNumNeurons();
+		delete[] this->neurons;
 		this->neurons = new Neuron[this->numNeurons];
 		for (int i = 0; i < this->numNeurons; i++) {
 			this->neurons[i] = layer.getNeuron(i);
@@ -44,6 +44,7 @@ namespace ANNA {
 	void Layer::init(int numInput, int numNeurons)
 	{
 		this->numNeurons = numNeurons;
+		delete[] this->neurons;
 		this->neurons = new Neuron[numNeurons];
 		for (int i = 0; i < numNeurons; i++) {
 			this->neurons[i].init(numInput);

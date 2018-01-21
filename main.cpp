@@ -4,7 +4,7 @@
 #include "activation_functions.h"
 
 
-void printMatrix(double* arr, int numElem, int numInARow = 999999999) {
+void printMatrix(double* arr, int numElem, int numInARow) {
     for (int i = 0; i < numElem; i++) {
 		if (i % numInARow == 0) printf("\n");
         printf("%.2f	", arr[i]);
@@ -224,17 +224,19 @@ void testSquareVsX() {
 /*
  * ~Different training methods are implemented in private functions of ANN, then just call them in train()
  * ~M.b. stop condition add in training loop
- * Add concurrency if possible
+ * ~Add concurrency if possible
  * Exceptions, all checks of input parameters
  * ~Change size types to Unsigned int
  * Check and fix all copy constructors / operator= 
+ * Rename GA params correctly
+ * Mb percent int to double?
  * */
 
 
 int main() {
     std::srand(std::time(0));
 
-	//testNoiseReduction();
+	testNoiseReduction();
 
 	//testSquareVsX();
 
