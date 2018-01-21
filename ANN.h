@@ -3,6 +3,7 @@
 
 #include "Layer.h"
 #include "enums.h"
+#include "utility.h"
 
 
 namespace ANNA {
@@ -15,21 +16,25 @@ namespace ANNA {
 
     struct MethodParams {
         virtual ~MethodParams() = 0;
+		virtual MethodParams* clone() = 0;
     };
 
     struct GAParams : MethodParams {
-        int generationSize;                 // number of Individuals in one generation
-        int numLeaveBest;                   // num of best Individuals which go to the next generation
-		int numRandomIndividuals;
-		int mutationProbab;	
+        int populationSize;                 // number of Individuals in one generation
+        int numElite;                   // num of best Individuals which go to the next generation
+		int numNewcomers;
+		int numParents;
+		double mutationProbab;	
         int maxGenerations;
-        GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationProbab, int maxGenerations);
+        GAParams(int populationSize, double elitePercentage, double parentsPercentage, double newcomersPercentage, double mutationProbab, int maxGenerations);
+		MethodParams* clone() final;
 	};
 
     struct BPParams : MethodParams {
         double learningSpeed;
         int repetitionFactor;
         BPParams(double learningSpeed, int repetitionFactor);
+		MethodParams* clone() final;
     };
 
     class ANN {
@@ -53,18 +58,12 @@ namespace ANNA {
 			Individual(const Individual& ind);
 			Individual& operator=(const Individual& ind);
             void init(int numInput, int numHidden, int numOutput);
-			void tryToMutate(int mutationProbab);
+			void getCrossed(const Individual& mom, const Individual& dad, double mutateProb);
             ~Individual();
-        };
-        struct Children {
-            Individual* left;
-            Individual* right;
-            Children(int numInput, int numHidden, int numOutput);
         };
 		Individual** createRandomGeneration();
 		void destroyGeneration(Individual** generation);
         void sortIndividuals(Individual** generation, int datasetSize, double** input, double** correctOutput);
-        Children* cross(const Individual& mom, const Individual& dad);
         void goToNextGeneration(Individual** generation, int trainDatasetSize, double** input, double** correctOutput);      // get generation and returns next generation
         void importNeuronsWeights(const Individual& ind) const;
 		Individual* getSelfIndivid() const;

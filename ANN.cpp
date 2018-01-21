@@ -21,6 +21,8 @@ namespace ANNA {
     ANN::ANN(int numInput, int numHiddenNeurons, int numOutput, ANNA::ActivationFunction activFunc, ANNA::LearningMethod learnMethod, ANNA::MethodParams* params) 
 		: hiddenLayer(numHiddenNeurons, numInput), outputLayer(numOutput, numHiddenNeurons), output(nullptr), hiddenOutput(nullptr), learnMethod(learnMethod), params(params)
     {
+		// check type of params to be equal to method!
+
         switch (activFunc) {
             case LOGISTIC_FUNCTION: {
                 this->activFunc = logisticFunction;
@@ -45,7 +47,7 @@ namespace ANNA {
 		this->activFunc = ann.activFunc;
 		this->activFuncDerivative = ann.activFuncDerivative;
 		this->learnMethod = ann.learnMethod;
-		this->params = ann.params;					// !!! CLONE
+		this->params = ann.params->clone();
 		if (ann.output != nullptr) {
 			this->output = new double[this->outputLayer.getNumNeurons()];
 			for (int i = 0; i < this->outputLayer.getNumNeurons(); i++) {
@@ -70,7 +72,7 @@ namespace ANNA {
 		this->activFunc = ann.activFunc;
 		this->activFuncDerivative = ann.activFuncDerivative;
 		this->learnMethod = ann.learnMethod;
-		this->params = ann.params;								// !!! CLONE
+		this->params = ann.params->clone();
 		if (ann.output != nullptr) {
 			this->output = new double[this->outputLayer.getNumNeurons()];
 			for (int i = 0; i < this->outputLayer.getNumNeurons(); i++) {
@@ -175,6 +177,7 @@ namespace ANNA {
                 break;
             case GA: {
 				Individual** generation = this->createRandomGeneration();									// create first generation
+				this->sortIndividuals(generation, trainDatasetSize, pretestInput, pretestOutput);
                 while (m < static_cast<GAParams*>(this->params)->maxGenerations && avgErr > acceptableError) {
                     this->goToNextGeneration(generation, pretestDatasetSize, pretestInput, pretestOutput);
                     m++;
@@ -186,6 +189,7 @@ namespace ANNA {
                     }
                     avgErr /= pretestDatasetSize;
                 }
+				this->importNeuronsWeights(*generation[0]);
 				this->destroyGeneration(generation);
             }
                 break;
@@ -235,10 +239,6 @@ namespace ANNA {
 		return ind;
 	}
 
-    ANN::Children::Children(int numInput, int numHidden, int numOutput) : left(new Individual(numInput, numHidden, numOutput)), right(new Individual(numInput, numHidden, numOutput))
-    {
-    }
-
 	ANN::Individual::Individual() : numInput(0), numHidden(0), numOutput(0), hiddenNeurons(nullptr), outputNeurons(nullptr)
 	{
 	}
@@ -280,10 +280,12 @@ namespace ANNA {
 		this->numInput = ind.numInput;
 		this->numHidden = ind.numHidden;
 		this->numOutput = ind.numOutput;
+		delete[] this->hiddenNeurons;
 		this->hiddenNeurons = new Neuron[this->numHidden];
 		for (int i = 0; i < this->numHidden; i++) {
 			this->hiddenNeurons[i].importWeights(ind.hiddenNeurons[i]);
 		}
+		delete[] this->outputNeurons;
 		this->outputNeurons = new Neuron[this->numOutput];
 		for (int i = 0; i < this->numOutput; i++) {
 			this->outputNeurons[i].importWeights(ind.outputNeurons[i]);
@@ -308,24 +310,26 @@ namespace ANNA {
         this->numOutput = numOutput;
     }
 
-	void ANN::Individual::tryToMutate(int mutationProbab)
+	void ANN::Individual::getCrossed(const Individual& mom, const Individual& dad, double mutateProb)
 	{
-        if (mutationProbab <= 0) return;
-        if (mutationProbab > 100) mutationProbab = 100;
-
-		int rNo = rand() % (this->numHidden * (100 / mutationProbab));
-		if (rNo < this->numHidden) {
-			this->hiddenNeurons[rNo].importWeights(Neuron(this->numInput));		// mutate neuron in the hidden layer
-		}
-		rNo = rand() % (this->numOutput * (100 / mutationProbab));
-		if (rNo < this->numOutput) {
-			this->outputNeurons[rNo].importWeights(Neuron(this->numHidden));	// mutate neuron in the output layer
+		// crossover hidden layer
+		int r = rand() % (mom.numHidden - 1);
+		for (int i = 0; i <= r; i++) this->hiddenNeurons[i].importWeights(dad.hiddenNeurons[i]);
+		for (int i = r + 1; i < mom.numHidden; i++) this->hiddenNeurons[i].importWeights(mom.hiddenNeurons[i]);
+		// crossover output layer
+		r = rand() % (mom.numOutput - 1);
+		for (int i = 0; i <= r; i++) this->outputNeurons[i].importWeights(dad.outputNeurons[i]);
+		for (int i = r + 1; i < mom.numOutput; i++) this->outputNeurons[i].importWeights(mom.outputNeurons[i]);
+		// try to mutate
+		if ((rand() % (10000 + 1)) * 0.0001 <= mutateProb) {
+			this->hiddenNeurons[rand() % this->numHidden].importWeights(Neuron(this->numInput));		// mutate neuron in the hidden layer
+			this->outputNeurons[rand() % this->numOutput].importWeights(Neuron(this->numHidden));		// mutate neuron in the output layer
 		}
 	}
 
 	ANN::Individual** ANN::createRandomGeneration()
 	{
-		int numIndividuals = static_cast<GAParams*>(this->params)->generationSize;
+		int numIndividuals = static_cast<GAParams*>(this->params)->populationSize;
 		Individual** generation = new Individual*[numIndividuals];									// create first generation
 		generation[0] = this->getSelfIndivid();
 		for (int i = 1; i < numIndividuals; i++) {
@@ -336,7 +340,7 @@ namespace ANNA {
 
 	void ANN::destroyGeneration(Individual ** generation)
 	{
-		int numIndividuals = static_cast<GAParams*>(this->params)->generationSize;
+		int numIndividuals = static_cast<GAParams*>(this->params)->populationSize;
 		for (int i = 0; i < numIndividuals; i++) {
 			delete generation[i];
 		}
@@ -346,7 +350,7 @@ namespace ANNA {
     void ANN::sortIndividuals(Individual** generation, int datasetSize, double** input, double** correctOutput)
     {
         GAParams* gaParams = static_cast<GAParams*>(this->params);
-        int numIndividuals = gaParams->generationSize;
+        int numIndividuals = gaParams->populationSize;
 
         std::priority_queue<double> errors;
         double* errorsArr = new double[numIndividuals];
@@ -384,66 +388,18 @@ namespace ANNA {
 		delete[] errorsArr;
     }
 
-    ANN::Children* ANN::cross(const Individual& mom, const Individual& dad)
-    {
-        Children* children = new Children(mom.numInput, mom.numHidden, mom.numOutput);
-
-		// crossover hidden layer
-        int r = rand() % (mom.numHidden - 1);
-        for (int i = 0; i <= r; i++) {
-			children->left->hiddenNeurons[i].importWeights(mom.hiddenNeurons[i]);
-			children->right->hiddenNeurons[i].importWeights(dad.hiddenNeurons[i]);
-        }
-        for (int i = r + 1; i < mom.numHidden; i++) {
-			children->left->hiddenNeurons[i].importWeights(dad.hiddenNeurons[i]);
-			children->right->hiddenNeurons[i].importWeights(mom.hiddenNeurons[i]);
-        }
-
-		// crossover output layer
-        r = rand() % (mom.numOutput - 1);
-        for (int i = 0; i <= r; i++) {
-			children->left->outputNeurons[i].importWeights(mom.outputNeurons[i]);
-			children->right->outputNeurons[i].importWeights(dad.outputNeurons[i]);
-        }
-        for (int i = r + 1; i < mom.numOutput; i++) {
-			children->left->outputNeurons[i].importWeights(dad.outputNeurons[i]);
-			children->right->outputNeurons[i].importWeights(mom.outputNeurons[i]);
-        }
-
-        return children;
-    }
-
     void ANN::goToNextGeneration(Individual** generation, int trainDatasetSize, double** input, double** correctOutput)
     {
-        sortIndividuals(generation, trainDatasetSize, input, correctOutput);
-
         GAParams* gaParams = static_cast<GAParams*>(this->params);
-
-		// now works only for even number of children
-        int numChildren = gaParams->generationSize - gaParams->numRandomIndividuals - gaParams->numLeaveBest;
-		int numParents = numChildren / 2;
-
-		Individual** ch = new Individual*[numChildren]();												// two children for each parent
-		int momIndex = 0, dadIndex = 0;
-		for (int i = 0, j = 0; j < numParents; i+=2, j++) {
-            momIndex = j + gaParams->numLeaveBest;
-            dadIndex = (j < numParents - 1) ? momIndex + 1 : gaParams->numLeaveBest;
-			Children* children = this->cross(*generation[momIndex], *generation[dadIndex]);
-			ch[i] = children->left;
-			ch[i + 1] = children->right;
-		}
-
-        for (int i = gaParams->numLeaveBest; i < gaParams->numLeaveBest + numChildren; i++) {
-			delete generation[i];
-            generation[i] = ch[i - gaParams->numLeaveBest];
-            generation[i]->tryToMutate(gaParams->mutationProbab);
-		}
-		delete[] ch;
-
-		// random individuals
-        for (int i = gaParams->generationSize - gaParams->numRandomIndividuals; i < gaParams->generationSize; i++) {
-			generation[i]->init(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
-		}
+		Individual* parents = new Individual[gaParams->numParents];
+		int j;
+		for (j = 0; j < gaParams->numParents; j++) parents[j] = Individual(*generation[j]);
+		for (j = gaParams->numElite; j < gaParams->populationSize - gaParams->numNewcomers; j++) 
+			generation[j]->getCrossed(parents[rand() % gaParams->numParents], parents[rand() % gaParams->numParents], gaParams->mutationProbab);
+		delete[] parents;
+		for (j; j < gaParams->populationSize; j++)
+			generation[j]->init(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
+		this->sortIndividuals(generation, trainDatasetSize, input, correctOutput);
     }
 
 	TrainingResult::TrainingResult(int numIter, double avgErr) : numIterations(numIter), avgError(avgErr)
@@ -454,16 +410,27 @@ namespace ANNA {
     {
     }
 
-    GAParams::GAParams(int generationSize, int numLeaveBest, int numRandomIndividuals, int mutationProbab, int maxGenerations) 
-		: mutationProbab(mutationProbab), maxGenerations(maxGenerations)
+	GAParams::GAParams(int populationSize, double elitePercentage, double parentsPercentage, double newcomersPercentage, double mutationProbab, int maxGenerations)
+		: maxGenerations(maxGenerations), populationSize(populationSize), 
+		mutationProbab(boundBetween(0.0, 1.0, mutationProbab)),
+		numElite(populationSize * boundBetween(0.0, 1.0, elitePercentage)), 
+		numParents(populationSize * boundBetween(0.0, 1.0, parentsPercentage)),
+		numNewcomers(populationSize * boundBetween(0.0, 1.0, newcomersPercentage))
 	{
-		// check for (generationSize - numLeaveBest - numRandomIndividuals) is even
-		this->generationSize = generationSize;
-		this->numLeaveBest = numLeaveBest;
-		this->numRandomIndividuals = numRandomIndividuals;
+		// check for (populationSize - numLeaveBest - numRandomIndividuals) is even !!!
+	}
+
+	MethodParams* GAParams::clone()
+	{
+		return new GAParams(*this);
 	}
 
     BPParams::BPParams(double learningSpeed, int repetitionFactor) : learningSpeed(learningSpeed), repetitionFactor(repetitionFactor)
     {
     }
+
+	MethodParams * BPParams::clone()
+	{
+		return new BPParams(*this);
+	}
 }
