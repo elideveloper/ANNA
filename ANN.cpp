@@ -177,7 +177,7 @@ namespace ANNA {
                 break;
             case GA: {
 				Individual** generation = this->createRandomGeneration();									// create first generation
-				this->sortIndividuals(generation, trainDatasetSize, pretestInput, pretestOutput);
+				this->sortIndividuals(generation, pretestDatasetSize, pretestInput, pretestOutput);
                 while (m < static_cast<GAParams*>(this->params)->maxGenerations && avgErr > acceptableError) {
                     this->goToNextGeneration(generation, pretestDatasetSize, pretestInput, pretestOutput);
                     m++;
@@ -267,10 +267,12 @@ namespace ANNA {
 		this->numOutput = ind.numOutput;
 		this->hiddenNeurons = new Neuron[this->numHidden];
 		for (int i = 0; i < this->numHidden; i++) {
+			this->hiddenNeurons[i].init(ind.hiddenNeurons[i].getNumInput());
 			this->hiddenNeurons[i].importWeights(ind.hiddenNeurons[i]);
 		}
 		this->outputNeurons = new Neuron[this->numOutput];
 		for (int i = 0; i < this->numOutput; i++) {
+			this->outputNeurons[i].init(ind.outputNeurons[i].getNumInput());
 			this->outputNeurons[i].importWeights(ind.outputNeurons[i]);
 		}
 	}
@@ -281,13 +283,15 @@ namespace ANNA {
 		this->numHidden = ind.numHidden;
 		this->numOutput = ind.numOutput;
 		delete[] this->hiddenNeurons;
-		this->hiddenNeurons = new Neuron[this->numHidden];
+		this->hiddenNeurons = new Neuron[this->numHidden]();
 		for (int i = 0; i < this->numHidden; i++) {
+			this->hiddenNeurons[i].init(ind.hiddenNeurons[i].getNumInput());
 			this->hiddenNeurons[i].importWeights(ind.hiddenNeurons[i]);
 		}
 		delete[] this->outputNeurons;
-		this->outputNeurons = new Neuron[this->numOutput];
+		this->outputNeurons = new Neuron[this->numOutput]();
 		for (int i = 0; i < this->numOutput; i++) {
+			this->outputNeurons[i].init(ind.outputNeurons[i].getNumInput());
 			this->outputNeurons[i].importWeights(ind.outputNeurons[i]);
 		}
 		return *this;
@@ -391,15 +395,15 @@ namespace ANNA {
     void ANN::goToNextGeneration(Individual** generation, int trainDatasetSize, double** input, double** correctOutput)
     {
         GAParams* gaParams = static_cast<GAParams*>(this->params);
-		Individual* parents = new Individual[gaParams->numParents];
+		Individual* parents = new Individual[gaParams->numParents]();
 		int j;
-		for (j = 0; j < gaParams->numParents; j++) parents[j] = Individual(*generation[j]);
+		for (j = 0; j < gaParams->numParents; j++) parents[j].init(generation[0]->numInput, generation[0]->numHidden, generation[0]->numOutput);
 		for (j = gaParams->numElite; j < gaParams->populationSize - gaParams->numNewcomers; j++) 
 			generation[j]->getCrossed(parents[rand() % gaParams->numParents], parents[rand() % gaParams->numParents], gaParams->mutationProbab);
-		delete[] parents;
 		for (j; j < gaParams->populationSize; j++)
 			generation[j]->init(this->hiddenLayer.getNumInputs(), this->hiddenLayer.getNumNeurons(), this->outputLayer.getNumNeurons());
 		this->sortIndividuals(generation, trainDatasetSize, input, correctOutput);
+		delete[] parents;
     }
 
 	TrainingResult::TrainingResult(int numIter, double avgErr) : numIterations(numIter), avgError(avgErr)
@@ -417,7 +421,7 @@ namespace ANNA {
 		numParents(populationSize * boundBetween(0.0, 1.0, parentsPercentage)),
 		numNewcomers(populationSize * boundBetween(0.0, 1.0, newcomersPercentage))
 	{
-		// check for (populationSize - numLeaveBest - numRandomIndividuals) is even !!!
+		// mb throw exception if some parameter is out of range
 	}
 
 	MethodParams* GAParams::clone()
